@@ -4,19 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7.5"
-anyhow = "1.0.53"
-async-graphql = { version = "7.0.0", default-features = false, features = ["chrono", "uuid", "playground"] }
+axum = "0.7"
+async-graphql =  { version = "7.0.5", default-features = false ,  features = ["tokio", "playground"]}
 async-graphql-axum = "7.0.5"
-chrono = { version = "0.4.19", features = ["serde"] }
-log = "0.4.20"
-env_logger = "0.11.2"
-serde = "1.0.136"
-dotenv = "0.15.0"
 sqlx = { version = "0.7.3", features = [ "uuid", "postgres",  "macros", "chrono", "runtime-async-std"] }
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
-http = { version = "1.0.0", features = [] }
-async-trait = "0.1.77"
-jsonwebtoken = "9.2.0"
-tokio = { version = "1.35.1", features = ["fs" ] }
+tokio = { version = "1.35.1", features = ["fs" , "full"] }
 strfmt = "0.2.4"
