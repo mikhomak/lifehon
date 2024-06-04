@@ -1,4 +1,5 @@
 mod psql;
+mod hobby_api;
 
 use std::env;
 use async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema};
@@ -21,10 +22,6 @@ impl QueryRoot {
     }
 }
 
-async fn root(State(pg_pool): State<PgPool>) -> Result<Json<String>, (String)> {
-    Ok(Json(HobbyModel::get_all_hobbies(&pg_pool).await.unwrap().get(0).unwrap().name.clone()))
-}
-
 #[tokio::main]
 async fn main() {
     dotenv().ok();
@@ -35,7 +32,8 @@ async fn main() {
 
     let app = Router::new().route("/",
                                   get(Html(playground_source(GraphQLPlaygroundConfig::new("/").subscription_endpoint("/ws")))).post_service(GraphQL::new(schema)))
-        .route("/check", get(root))
+        .route("/hobbies", get(hobby_api::habi_hobby::get_all_hobbies))
+        .route("/user", get(hobby_api::habi_user::get_user_for_name))
         .with_state(db_pool);
 
     println!("GraphiQL IDE: http://localhost:8600");

@@ -17,4 +17,12 @@ impl HobbyModel {
                 .await?;
         Ok(r_hobbies)
     }
+
+    pub async fn get_hobby_for_name(name: &String, pool: &PgPool) -> Result<HobbyModel, sqlx::Error> {
+        let r_hobby: HobbyModel =
+            sqlx::query_as!(HobbyModel, "SELECT * FROM l_hobby WHERE name = $1", name)
+                .fetch_one(pool)
+                .await?;
+        Ok(r_hobby)
+    }
 }
