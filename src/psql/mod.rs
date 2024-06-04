@@ -1,0 +1,1 @@
+pub mod hobby_psql_model;

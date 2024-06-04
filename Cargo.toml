@@ -11,3 +11,6 @@ sqlx = { version = "0.7.3", features = [ "uuid", "postgres",  "macros", "chrono"
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
 tokio = { version = "1.35.1", features = ["fs" , "full"] }
 strfmt = "0.2.4"
+chrono = { version = "0.4.38", features = ["serde"] }
+serde = { version = "1.0.203", features = ["derive"] }
+dotenv = "0.15.0"
