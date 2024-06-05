@@ -49,7 +49,7 @@ CREATE TABLE "l_task"
 (
     id          UUID         NOT NULL DEFAULT gen_random_uuid(),
     user_name   VARCHAR(254) NOT NULL REFERENCES "l_user" (name),
-    hobby       VARCHAR(50)  NOT NULL REFERENCES "l_hobby" (name),
+    hobby_name       VARCHAR(50)  NOT NULL REFERENCES "l_hobby" (name),
     external_id VARCHAR(254) NOT NULL,
     name        VARCHAR(50)  NOT NULL,
     description text,

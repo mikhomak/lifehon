@@ -1,17 +1,17 @@
-mod psql;
-mod hobby_api;
-
 use std::env;
+
 use async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema};
 use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
 use async_graphql_axum::GraphQL;
-use axum::{routing::get, Router, Json};
-use axum::extract::State;
+use axum::{Router, routing::get};
 use axum::response::{Html, IntoResponse};
+use axum::routing::post;
 use dotenv::dotenv;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
-use crate::psql::hobby_psql_model::HobbyModel;
+
+mod psql;
+mod hobby_api;
 
 pub(crate) struct QueryRoot;
 
@@ -25,6 +25,7 @@ impl QueryRoot {
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+    env_logger::init();
     let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription).finish();
 
     let database_url: String = env::var("DATABASE_URL").expect("DATABASE_URL is not set");
@@ -33,7 +34,9 @@ async fn main() {
     let app = Router::new().route("/",
                                   get(Html(playground_source(GraphQLPlaygroundConfig::new("/").subscription_endpoint("/ws")))).post_service(GraphQL::new(schema)))
         .route("/hobbies", get(hobby_api::habi_hobby::get_all_hobbies))
-        .route("/user", get(hobby_api::habi_user::get_user_for_name))
+        .route("/user/:name", get(hobby_api::habi_user::get_user_for_name))
+        .route("/user/:name/task", post(hobby_api::habi_task::create_task))
+        .route("/user/", post(hobby_api::habi_user::create_user))
         .with_state(db_pool);
 
     println!("GraphiQL IDE: http://localhost:8600");

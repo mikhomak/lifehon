@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{Error, FromRow, PgPool};
+use sqlx::{FromRow, PgPool};
 
 #[derive(FromRow, Deserialize, Serialize)]
 pub struct HobbyModel {
