@@ -20,7 +20,7 @@ pub struct TaskModel {
 
 impl TaskModel {
 
-    pub async fn create_task(create_task: &CreateTask, pg_pool: &PgPool) -> Result<TaskModel, sqlx::Error>{
+    pub async fn create_task(user_name: &String, create_task: &CreateTask, pg_pool: &PgPool) -> Result<TaskModel, sqlx::Error>{
 
         let r_task = sqlx::query_as!(
             TaskModel,
@@ -28,7 +28,7 @@ impl TaskModel {
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) \
             RETURNING *",
             create_task.name,
-            create_task.user_name,
+            user_name,
             create_task.hobby_name,
             create_task.external_id,
             create_task.description.clone().unwrap_or(String::new()),
