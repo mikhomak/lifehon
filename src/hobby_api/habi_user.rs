@@ -16,7 +16,9 @@ pub struct CreateUser {
     pub password: String,
 }
 
-pub async fn get_user_for_name(Path(name): Path<String>, State(pg_pool): State<PgPool>)
+
+pub async fn get_user_for_name(Path(name): Path<String>,
+                               State(pg_pool): State<PgPool>)
                                -> Result<Json<UserModel>, (StatusCode, String)> {
     match UserModel::get_user_for_name(&name, &pg_pool).await {
         Ok(user_model) => { Ok(Json(user_model)) }

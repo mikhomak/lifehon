@@ -2,7 +2,7 @@ use chrono::{DateTime, Local, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
-use crate::hobby_api::habi_task::CreateTask;
+use crate::hobby_api::hapi_task::CreateTask;
 
 #[derive(FromRow, Deserialize, Serialize)]
 pub struct TaskModel {

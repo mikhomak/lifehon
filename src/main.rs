@@ -33,10 +33,11 @@ async fn main() {
 
     let app = Router::new().route("/",
                                   get(Html(playground_source(GraphQLPlaygroundConfig::new("/").subscription_endpoint("/ws")))).post_service(GraphQL::new(schema)))
-        .route("/hobbies", get(hobby_api::habi_hobby::get_all_hobbies))
+        .route("/hobbies", get(hobby_api::hapi_hobby::get_all_hobbies))
         .route("/user/:name", get(hobby_api::habi_user::get_user_for_name))
-        .route("/user/:name/task", post(hobby_api::habi_task::create_task))
+        .route("/user/:name/task", post(hobby_api::hapi_task::create_task))
         .route("/user/", post(hobby_api::habi_user::create_user))
+        .route("/user/login", post(hobby_api::hapi_auth::login_user))
         .with_state(db_pool);
 
     println!("GraphiQL IDE: http://localhost:8600");
