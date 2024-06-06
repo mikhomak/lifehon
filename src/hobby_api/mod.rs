@@ -3,11 +3,10 @@ use std::fmt::Display;
 use axum::http::StatusCode;
 use axum::Json;
 
-pub mod hapi_hobby;
-pub mod habi_user;
-pub mod hapi_task;
 pub mod hapi_auth;
-
+pub mod hapi_hobby;
+pub mod hapi_task;
+pub mod hapi_user;
 
 #[derive(Clone, Debug)]
 pub enum HabiErrorCode {

@@ -22,18 +22,30 @@ pub struct CreateTask {
     pub finished_at: Option<DateTime<Utc>>,
 }
 
-pub async fn create_task(Path(user_name): Path<String>,
-                         State(pg_pool): State<PgPool>,
-                         Json(new_task): Json<CreateTask>)
-                         -> Result<Json<TaskModel>, (StatusCode, String)> {
+pub async fn create_task(
+    Path(user_name): Path<String>,
+    State(pg_pool): State<PgPool>,
+    Json(new_task): Json<CreateTask>,
+) -> Result<Json<TaskModel>, (StatusCode, String)> {
     match TaskModel::create_task(&user_name, &new_task, &pg_pool).await {
         Ok(task_model) => {
-            info!("Task has been created with name [{}] and external id [{}] for user [{}]", task_model.name, task_model.external_id, task_model.user_name);
+            info!(
+                "Task has been created with name [{}] and external id [{}] for user [{}]",
+                task_model.name, task_model.external_id, task_model.user_name
+            );
             Ok(Json(task_model))
         }
         Err(error) => {
-            error!("Error at creating the task for user [{}] and external id [{}], the error is [{}]", user_name, new_task.external_id, error.to_string());
-            Err((StatusCode::INTERNAL_SERVER_ERROR, "[TASK_001] Something went wrong!".to_string()))
+            error!(
+                "Error at creating the task for user [{}] and external id [{}], the error is [{}]",
+                user_name,
+                new_task.external_id,
+                error.to_string()
+            );
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "[TASK_001] Something went wrong!".to_string(),
+            ))
         }
     }
 }

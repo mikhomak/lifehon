@@ -19,9 +19,11 @@ pub struct TaskModel {
 }
 
 impl TaskModel {
-
-    pub async fn create_task(user_name: &String, create_task: &CreateTask, pg_pool: &PgPool) -> Result<TaskModel, sqlx::Error>{
-
+    pub async fn create_task(
+        user_name: &String,
+        create_task: &CreateTask,
+        pg_pool: &PgPool,
+    ) -> Result<TaskModel, sqlx::Error> {
         let r_task = sqlx::query_as!(
             TaskModel,
             "INSERT INTO l_task(name, user_name, hobby_name, external_id, description, created_at, finished_at, given_exp, public) \
