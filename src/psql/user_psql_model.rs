@@ -19,6 +19,7 @@ pub struct UserModel {
 }
 
 impl UserModel {
+
     pub async fn create_user(create_user: &CreateUser, pg_pool: &PgPool) -> Result<UserModel, sqlx::Error> {
         let r_user: UserModel = sqlx::query_as!(
             UserModel,
