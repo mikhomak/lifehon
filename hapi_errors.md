@@ -11,7 +11,7 @@
 * [CREATE_USER_003] - the name is empty
 * [CREATE_USER_004] - the email is empty
 * [CREATE_USER_005] - the password is empty
-* [CREATE_USER_006] - the consent is not agreed"# Toke
+* [CREATE_USER_006] - the consent is not agreed
 
 ## Login
 

@@ -55,12 +55,6 @@ pub async fn create_user(
     State(pg_pool): State<PgPool>,
     Valid(Json(new_user)): Valid<Json<CreateUserInput>>,
 ) -> Result<Json<UserModel>, (StatusCode, String)> {
-    if let Err(validation_error) = new_user.validate() {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            validation_error.to_string()
-        ));
-    }
     if let Err(validation_error) = user_validation::validate_user(&new_user, &pg_pool).await {
         return Err((
             StatusCode::BAD_REQUEST,
