@@ -1,4 +1,4 @@
-use axum::extract::{Path, Query, State};
+use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
 use chrono::{DateTime, Utc};
@@ -6,7 +6,6 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::psql::hobby_psql_model::HobbyModel;
 use crate::psql::task_psql_model::TaskModel;
 use crate::psql::user_psql_model::UserModel;
 
@@ -27,6 +26,10 @@ pub async fn create_task(
     State(pg_pool): State<PgPool>,
     Json(new_task): Json<CreateTask>,
 ) -> Result<Json<TaskModel>, (StatusCode, String)> {
+    if UserModel::get_user_for_name(&user_name, &pg_pool).await.is_err() {
+        return Err((StatusCode::NOT_FOUND, "[TASK_002] User not found!".to_string()));
+    }
+
     match TaskModel::create_task(&user_name, &new_task, &pg_pool).await {
         Ok(task_model) => {
             info!(

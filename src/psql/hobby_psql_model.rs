@@ -7,6 +7,7 @@ pub struct HobbyModel {
     pub name: String,
     pub created_at: DateTime<Utc>,
     pub enabled: bool,
+    pub external_link: Option<String>,
 }
 
 impl HobbyModel {

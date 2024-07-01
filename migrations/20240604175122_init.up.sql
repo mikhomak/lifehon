@@ -1,4 +1,4 @@
-CREATE TABLE "l_site_configuration"
+create TABLE "l_site_configuration"
 (
     id                        SERIAL PRIMARY KEY,
     allow_site_comments       BOOL NOT NULL default true,
@@ -9,21 +9,22 @@ CREATE TABLE "l_site_configuration"
     allow_hobby_communication BOOL not null default true
 );
 
-INSERT INTO l_site_configuration
-VALUES (1, true, true, true, true, true, true);
+insert into l_site_configuration
+values (1, true, true, true, true, true, true);
 
 CREATE TABLE "l_hobby"
 (
     name       VARCHAR(50) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
-    enabled    BOOL        NOT NULL DEFAULT TRUE,
+    created_at         TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
+    enabled            BOOL        NOT NULL DEFAULT TRUE,
+    external_link      VARCHAR(254),
     PRIMARY KEY (name)
 );
 
-INSERT INTO l_hobby
-VALUES ('habits');
+insert into l_hobby
+values ('habits');
 
-CREATE TABLE "l_user"
+create TABLE "l_user"
 (
     id             UUID         NOT NULL        DEFAULT gen_random_uuid(),
     name           VARCHAR(50)  NOT NULL UNIQUE,
@@ -38,18 +39,18 @@ CREATE TABLE "l_user"
     PRIMARY KEY (name)
 );
 
-CREATE TABLE "rel_user2hobby"
+create TABLE "rel_user2hobby"
 (
     hobby_name VARCHAR(50) NOT NULL REFERENCES "l_hobby" (name),
     user_name  VARCHAR(50) NOT NULL REFERENCES "l_user" (name),
     PRIMARY KEY (hobby_name, user_name)
 );
 
-CREATE TABLE "l_task"
+create TABLE "l_task"
 (
     id          UUID         NOT NULL DEFAULT gen_random_uuid(),
     user_name   VARCHAR(254) NOT NULL REFERENCES "l_user" (name),
-    hobby_name       VARCHAR(50)  NOT NULL REFERENCES "l_hobby" (name),
+    hobby_name  VARCHAR(50)  NOT NULL REFERENCES "l_hobby" (name),
     external_id VARCHAR(254) NOT NULL,
     name        VARCHAR(50)  NOT NULL,
     description text,
@@ -60,7 +61,7 @@ CREATE TABLE "l_task"
     PRIMARY KEY (user_name, external_id)
 );
 
-CREATE TABLE "l_post"
+create TABLE "l_post"
 (
     id             UUID        NOT NULL DEFAULT gen_random_uuid(),
     title          VARCHAR(50) NOT NULL,

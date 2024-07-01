@@ -1,27 +1,33 @@
+use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::{extract, Json};
-use axum_valid::Valid;
+use axum_valid::{Valid, ValidEx};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use validator::Validate;
+use validator::{Validate, ValidateArgs};
 
+use crate::hobby_api::validation;
+use crate::hobby_api::validation::user_validation;
 use crate::psql::user_psql_model::UserModel;
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct CreateUserInput {
+    #[validate(length(min = 1, message = "[CREATE_USER_003] - the name is empty"))]
     pub name: String,
     pub consent: bool,
     pub public_profile: bool,
+    #[validate(length(min = 1, message = "[CREATE_USER_004] - the email is empty"))]
     pub email: String,
+    #[validate(length(min = 1, message = "[CREATE_USER_005] - the password is empty"))]
     pub password: String,
 }
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct AddHobbyToUserInput {
+    #[validate(length(min = 1))]
     pub user_name: String,
+    #[validate(length(min = 1))]
     pub hobby_name: String,
 }
 
@@ -49,6 +55,18 @@ pub async fn create_user(
     State(pg_pool): State<PgPool>,
     Valid(Json(new_user)): Valid<Json<CreateUserInput>>,
 ) -> Result<Json<UserModel>, (StatusCode, String)> {
+    if let Err(validation_error) = new_user.validate() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            validation_error.to_string()
+        ));
+    }
+    if let Err(validation_error) = user_validation::validate_user(&new_user, &pg_pool).await {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            validation_error.to_string()
+        ));
+    }
     match UserModel::create_user(&new_user, &pg_pool).await {
         Ok(user_model) => {
             info!(
@@ -79,8 +97,7 @@ pub async fn add_hobby(
         &add_hobby_to_user_data.user_name,
         &add_hobby_to_user_data.hobby_name,
         &pg_pool,
-    )
-    .await
+    ).await
     {
         Ok(_) => Ok((StatusCode::CREATED, "Hobby added!".to_string())),
         Err(error) => {

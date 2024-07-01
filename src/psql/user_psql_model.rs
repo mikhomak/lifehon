@@ -51,7 +51,19 @@ impl UserModel {
         Ok(r_user)
     }
 
-    pub async fn login_user(
+    pub async fn get_user_for_email(
+        email: &String,
+        pg_pool: &PgPool,
+    ) -> Result<UserModel, sqlx::Error> {
+        let r_user: UserModel =
+            sqlx::query_as!(UserModel, "SELECT * FROM l_user WHERE email = $1", email)
+                .fetch_one(pg_pool)
+                .await?;
+        Ok(r_user)
+    }
+
+
+     pub async fn login_user(
         name: &String,
         password: &String,
         pg_pool: &PgPool,
@@ -62,8 +74,8 @@ impl UserModel {
             name,
             password
         )
-        .fetch_one(pg_pool)
-        .await?;
+            .fetch_one(pg_pool)
+            .await?;
         Ok(r_user)
     }
 
@@ -78,8 +90,8 @@ impl UserModel {
             user_name,
             hobby_name,
         )
-        .execute(pg_pool)
-        .await?;
+            .execute(pg_pool)
+            .await?;
         Ok(())
     }
 }
