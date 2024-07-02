@@ -16,7 +16,7 @@ pub async fn validate_user(create_user_input: &CreateUserInput, pg_pool: &PgPool
     Ok(())
 }
 
-pub async fn validate_unique_username(user_name: &String, pg_pool: &PgPool) -> Result<(), ValidationError> {
+async fn validate_unique_username(user_name: &String, pg_pool: &PgPool) -> Result<(), ValidationError> {
     match UserModel::get_user_for_name(user_name, pg_pool).await {
         Ok(_) => {
             Err(ValidationError::with_message(ValidationError::new(""), Cow::from(errors::CreateUserErrors::NAME_TAKEN)))
@@ -26,7 +26,7 @@ pub async fn validate_unique_username(user_name: &String, pg_pool: &PgPool) -> R
 }
 
 
-pub async fn validate_unique_email(email: &String, pg_pool: &PgPool) -> Result<(), ValidationError> {
+async fn validate_unique_email(email: &String, pg_pool: &PgPool) -> Result<(), ValidationError> {
     match UserModel::get_user_for_email(email, pg_pool).await {
         Ok(_) => {
             Err(ValidationError::with_message(ValidationError::new(""), Cow::from(errors::CreateUserErrors::EMAIL_TAKEN)))

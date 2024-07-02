@@ -1,36 +1,41 @@
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::Json;
+use axum::{Extension, Json};
 use chrono::{DateTime, Utc};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+use validator::Validate;
+use crate::hobby_api::validation::task_validation;
 
 use crate::psql::task_psql_model::TaskModel;
 use crate::psql::user_psql_model::UserModel;
 
-#[derive(Deserialize, Serialize)]
-pub struct CreateTask {
+#[derive(Deserialize, Serialize, Validate)]
+pub struct CreateTaskInput {
+    #[validate(length(min = 1, message = ""))]
     pub name: String,
+    #[validate(length(min = 1, message = ""))]
     pub hobby_name: String,
+    #[validate(length(min = 1, message = ""))]
     pub external_id: String,
     pub description: Option<String>,
     pub public: bool,
+    #[validate(range(min = 0, message = ""))]
     pub given_exp: i64,
     pub created_at: Option<DateTime<Utc>>,
     pub finished_at: Option<DateTime<Utc>>,
 }
 
 pub async fn create_task(
-    Path(user_name): Path<String>,
     State(pg_pool): State<PgPool>,
-    Json(new_task): Json<CreateTask>,
+    user_model: Extension<UserModel>,
+    Json(new_task): Json<CreateTaskInput>,
 ) -> Result<Json<TaskModel>, (StatusCode, String)> {
-    if UserModel::get_user_for_name(&user_name, &pg_pool).await.is_err() {
-        return Err((StatusCode::NOT_FOUND, "[TASK_002] User not found!".to_string()));
+    if let Err(validation_error) = task_validation::validate_create_task(&user_model.name, &new_task, &pg_pool).await {
+        return Err((StatusCode::BAD_REQUEST, validation_error.to_string()));
     }
-
-    match TaskModel::create_task(&user_name, &new_task, &pg_pool).await {
+    match TaskModel::create_task(&user_model.name, &new_task, &pg_pool).await {
         Ok(task_model) => {
             info!(
                 "Task has been created with name [{}] and external id [{}] for user [{}]",
@@ -41,7 +46,7 @@ pub async fn create_task(
         Err(error) => {
             error!(
                 "Error at creating the task for user [{}] and external id [{}], the error is [{}]",
-                user_name,
+                user_model.name,
                 new_task.external_id,
                 error.to_string()
             );

@@ -2,7 +2,7 @@ use chrono::{DateTime, Local, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
-use crate::hobby_api::hapi_task::CreateTask;
+use crate::hobby_api::hapi_task::CreateTaskInput;
 
 #[derive(FromRow, Deserialize, Serialize)]
 pub struct TaskModel {
@@ -21,7 +21,7 @@ pub struct TaskModel {
 impl TaskModel {
     pub async fn create_task(
         user_name: &String,
-        create_task: &CreateTask,
+        create_task: &CreateTaskInput,
         pg_pool: &PgPool,
     ) -> Result<TaskModel, sqlx::Error> {
         let r_task = sqlx::query_as!(

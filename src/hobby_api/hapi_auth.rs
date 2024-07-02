@@ -2,7 +2,7 @@ use axum::extract::{Request, State};
 use axum::http::StatusCode;
 use axum::Json;
 use axum::middleware::Next;
-use axum::response::{IntoResponse, Response};
+use axum::response::Response;
 use axum_valid::Valid;
 use jsonwebtoken::{decode, DecodingKey, encode, EncodingKey, Header, TokenData, Validation};
 use jsonwebtoken::errors::Error;
@@ -26,7 +26,7 @@ pub struct SuccessLogin {
     pub token: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct HapiClaims {
     pub id: String,
     pub email: String,
@@ -102,13 +102,21 @@ fn decode_token(token: &String) -> Result<TokenData<HapiClaims>, Error> {
     Ok(token)
 }
 
-pub async fn auth_middleware(mut request: Request, next: Next) -> Result<Response, StatusCode> {
-    let option = request.headers()
+pub async fn auth_middleware(
+    State(pg_pool): State<PgPool>,
+    mut request: Request, next: Next) -> Result<Response, StatusCode> {
+    let o_token: Option<&str> = request.headers()
         .get("authorization")
         .and_then(|value| value.to_str().ok());
 
-    if option.is_none() {
+    if o_token.is_none() {
         return Err(StatusCode::UNAUTHORIZED);
+    }
+    if let Ok(claims) = decode_token(&o_token.unwrap().to_string()) {
+        if let Ok(user) = UserModel::get_user_for_email(&claims.claims.email, &pg_pool).await {
+            request.extensions_mut().insert(claims.claims);
+            request.extensions_mut().insert(user);
+        }
     }
     Ok(next.run(request).await)
 }

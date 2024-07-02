@@ -4,7 +4,7 @@ use sqlx::{FromRow, PgPool};
 
 use crate::hobby_api::hapi_user::CreateUserInput;
 
-#[derive(FromRow, Deserialize, Serialize, Debug)]
+#[derive(FromRow, Deserialize, Serialize, Debug, Clone)]
 pub struct UserModel {
     pub id: sqlx::types::Uuid,
     pub name: String,
