@@ -1,11 +1,11 @@
 use std::env;
 
+use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema};
-use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
 use async_graphql_axum::GraphQL;
-use axum::{middleware, Router, routing::get};
 use axum::response::Html;
 use axum::routing::post;
+use axum::{middleware, routing::get, Router};
 use dotenv::dotenv;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -36,10 +36,16 @@ async fn main() {
         .route("/user/:name", get(hobby_api::hapi_user::get_user_for_name))
         .route("/user/task/", post(hobby_api::hapi_task::create_task))
         .route("/user/hobby/", post(hobby_api::hapi_user::add_hobby))
-        .route_layer(middleware::from_fn_with_state(db_pool.clone(), hobby_api::hapi_auth::auth_middleware))
+        .route_layer(middleware::from_fn_with_state(
+            db_pool.clone(),
+            hobby_api::hapi_auth::auth_middleware,
+        ))
         .route("/user/", post(hobby_api::hapi_user::create_user))
         .route("/hobbies", get(hobby_api::hapi_hobby::get_all_hobbies))
-        .route("/user/login/token/", post(hobby_api::hapi_auth::check_token))
+        .route(
+            "/user/login/token/",
+            post(hobby_api::hapi_auth::check_token),
+        )
         .route("/user/login/", post(hobby_api::hapi_auth::login_user))
         .with_state(db_pool);
 
@@ -49,9 +55,9 @@ async fn main() {
             get(Html(playground_source(
                 GraphQLPlaygroundConfig::new("/").subscription_endpoint("/ws"),
             )))
-                .post_service(GraphQL::new(schema)),
-        ).nest("/api/v1/", hapi_routes);
-
+            .post_service(GraphQL::new(schema)),
+        )
+        .nest("/api/v1/", hapi_routes);
 
     println!("GraphiQL IDE: http://localhost:8600");
 

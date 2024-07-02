@@ -1,11 +1,11 @@
 use axum::extract::{Request, State};
 use axum::http::StatusCode;
-use axum::Json;
 use axum::middleware::Next;
 use axum::response::Response;
+use axum::Json;
 use axum_valid::Valid;
-use jsonwebtoken::{decode, DecodingKey, encode, EncodingKey, Header, TokenData, Validation};
 use jsonwebtoken::errors::Error;
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use validator::Validate;
@@ -32,18 +32,6 @@ pub struct HapiClaims {
     pub email: String,
     exp: usize,
     iat: i64,
-}
-
-pub fn get_claims_from_token(
-    token: &String,
-) -> Result<TokenData<HapiClaims>, jsonwebtoken::errors::Error> {
-    let auth_secret = dotenv::var("TOKEN_SECRET").expect("Token secret is not set!");
-    let token: TokenData<HapiClaims> = decode::<HapiClaims>(
-        token,
-        &DecodingKey::from_secret(auth_secret.as_ref()),
-        &Validation::default(),
-    )?;
-    Ok(token)
 }
 
 pub fn create_token(id: &String, email: &String) -> Result<String, jsonwebtoken::errors::Error> {
@@ -86,11 +74,13 @@ pub async fn login_user(
 
 pub async fn check_token(token: String) -> HabiResult<SuccessLogin> {
     match decode_token(&token) {
-        Ok(_) => { Ok(Json(SuccessLogin { token })) }
-        Err(_) => { Err((StatusCode::UNAUTHORIZED, "[LOGIN_005] Bad token".to_string())) }
+        Ok(_) => Ok(Json(SuccessLogin { token })),
+        Err(_) => Err((
+            StatusCode::UNAUTHORIZED,
+            "[LOGIN_005] Bad token".to_string(),
+        )),
     }
 }
-
 
 fn decode_token(token: &String) -> Result<TokenData<HapiClaims>, Error> {
     let auth_secret = dotenv::var("TOKEN_SECRET").expect("Auth secret is not set!");
@@ -104,8 +94,11 @@ fn decode_token(token: &String) -> Result<TokenData<HapiClaims>, Error> {
 
 pub async fn auth_middleware(
     State(pg_pool): State<PgPool>,
-    mut request: Request, next: Next) -> Result<Response, StatusCode> {
-    let o_token: Option<&str> = request.headers()
+    mut request: Request,
+    next: Next,
+) -> Result<Response, StatusCode> {
+    let o_token: Option<&str> = request
+        .headers()
         .get("authorization")
         .and_then(|value| value.to_str().ok());
 

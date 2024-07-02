@@ -1,4 +1,5 @@
-use axum::extract::{Path, State};
+use crate::hobby_api::validation::task_validation;
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::{Extension, Json};
 use chrono::{DateTime, Utc};
@@ -6,7 +7,6 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use validator::Validate;
-use crate::hobby_api::validation::task_validation;
 
 use crate::psql::task_psql_model::TaskModel;
 use crate::psql::user_psql_model::UserModel;
@@ -32,7 +32,9 @@ pub async fn create_task(
     user_model: Extension<UserModel>,
     Json(new_task): Json<CreateTaskInput>,
 ) -> Result<Json<TaskModel>, (StatusCode, String)> {
-    if let Err(validation_error) = task_validation::validate_create_task(&user_model.name, &new_task, &pg_pool).await {
+    if let Err(validation_error) =
+        task_validation::validate_create_task(&user_model.name, &new_task, &pg_pool).await
+    {
         return Err((StatusCode::BAD_REQUEST, validation_error.to_string()));
     }
     match TaskModel::create_task(&user_model.name, &new_task, &pg_pool).await {

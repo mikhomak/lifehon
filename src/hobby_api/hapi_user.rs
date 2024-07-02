@@ -1,13 +1,12 @@
-use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum_valid::{Valid, ValidEx};
+use axum::Json;
+use axum_valid::Valid;
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use validator::{Validate, ValidateArgs};
+use validator::Validate;
 
-use crate::hobby_api::validation;
 use crate::hobby_api::validation::user_validation;
 use crate::psql::user_psql_model::UserModel;
 
@@ -56,10 +55,7 @@ pub async fn create_user(
     Valid(Json(new_user)): Valid<Json<CreateUserInput>>,
 ) -> Result<Json<UserModel>, (StatusCode, String)> {
     if let Err(validation_error) = user_validation::validate_user(&new_user, &pg_pool).await {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            validation_error.to_string()
-        ));
+        return Err((StatusCode::BAD_REQUEST, validation_error.to_string()));
     }
     match UserModel::create_user(&new_user, &pg_pool).await {
         Ok(user_model) => {
@@ -91,7 +87,8 @@ pub async fn add_hobby(
         &add_hobby_to_user_data.user_name,
         &add_hobby_to_user_data.hobby_name,
         &pg_pool,
-    ).await
+    )
+    .await
     {
         Ok(_) => Ok((StatusCode::CREATED, "Hobby added!".to_string())),
         Err(error) => {

@@ -1,6 +1,3 @@
-use std::fmt::Display;
-use validator::ValidationError;
-
 pub struct CreateUserErrors {}
 
 impl CreateUserErrors {

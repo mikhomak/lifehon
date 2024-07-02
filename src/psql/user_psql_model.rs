@@ -62,8 +62,7 @@ impl UserModel {
         Ok(r_user)
     }
 
-
-     pub async fn login_user(
+    pub async fn login_user(
         name: &String,
         password: &String,
         pg_pool: &PgPool,
@@ -74,8 +73,8 @@ impl UserModel {
             name,
             password
         )
-            .fetch_one(pg_pool)
-            .await?;
+        .fetch_one(pg_pool)
+        .await?;
         Ok(r_user)
     }
 
@@ -85,13 +84,12 @@ impl UserModel {
         pg_pool: &PgPool,
     ) -> Result<(), sqlx::Error> {
         let _ = sqlx::query!(
-            "INSERT INTO rel_user2hobby(user_name, hobby_name)\
-        VALUES($1,$2)",
+            "INSERT INTO rel_user2hobby(user_name, hobby_name) VALUES($1,$2)",
             user_name,
             hobby_name,
         )
-            .execute(pg_pool)
-            .await?;
+        .execute(pg_pool)
+        .await?;
         Ok(())
     }
 }
