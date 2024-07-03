@@ -2,6 +2,7 @@ use std::env;
 
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
+use async_graphql::parser::types::OperationType::Mutation;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{middleware, Router, routing::get};
 use axum::extract::State;
@@ -11,6 +12,7 @@ use axum::routing::post;
 use dotenv::dotenv;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+use crate::front_api::gql_mutations::Mutations;
 
 use crate::front_api::gql_query::Query;
 
@@ -19,7 +21,7 @@ mod psql;
 mod services;
 mod front_api;
 
-pub type LifehonSchema = Schema<Query, EmptyMutation, EmptySubscription>;
+pub type LifehonSchema = Schema<Query, Mutations, EmptySubscription>;
 
 async fn graphql_handler(
     State(schema): State<LifehonSchema>,
@@ -62,9 +64,10 @@ async fn main() {
         .with_state(db_pool.clone());
 
     let schema: LifehonSchema =
-        Schema::build(Query::default(), EmptyMutation, EmptySubscription)
+        Schema::build(Query::default(), Mutations::default(), EmptySubscription)
             .data(db_pool)
             .finish();
+
     let app = Router::new()
         .nest("/api/v1/", hapi_routes)
         .route("/front-api/v1/", post(graphql_handler))
