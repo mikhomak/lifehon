@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
+use crate::front_api::gql_models::hobby_gql_model::GqlHobby;
+
 #[derive(FromRow, Deserialize, Serialize)]
 pub struct HobbyModel {
     pub name: String,
@@ -28,5 +30,22 @@ impl HobbyModel {
                 .fetch_one(pool)
                 .await?;
         Ok(r_hobby)
+    }
+
+
+    pub fn convert_to_gql(&self) -> GqlHobby {
+        GqlHobby {
+            name: self.name.clone(),
+            created_at: self.created_at,
+            enabled: self.enabled,
+            external_link: self.external_link.clone(),
+        }
+    }
+
+    pub fn convert_all_to_gql(hobby_models: &Vec<HobbyModel>) -> Vec<GqlHobby> {
+        hobby_models
+            .iter()
+            .map(HobbyModel::convert_to_gql)
+            .collect::<Vec<GqlHobby>>()
     }
 }

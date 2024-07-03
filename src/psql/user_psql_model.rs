@@ -4,6 +4,7 @@ use sqlx::{FromRow, PgPool};
 
 use crate::front_api::gql_models::user_gql_model::GqlUser;
 use crate::hobby_api::hapi_user::CreateUserInput;
+use crate::psql::hobby_psql_model::HobbyModel;
 
 #[derive(FromRow, Deserialize, Serialize, Debug, Clone)]
 pub struct UserModel {
@@ -104,6 +105,16 @@ impl UserModel {
         Ok(())
     }
 
+    pub async fn get_hobbies_for_user_name(
+        user_name: &String,
+        pg_pool: &PgPool,
+    ) -> Result<Vec<HobbyModel>, sqlx::Error> {
+        let r_hobbies: Vec<HobbyModel> =
+            sqlx::query_as!(HobbyModel, "SELECT hobby.* FROM (l_hobby AS hobby LEFT JOIN rel_user2hobby AS r_u2h ON hobby.name = r_u2h.hobby_name) WHERE r_u2h.user_name = $1", user_name)
+                .fetch_all(pg_pool)
+                .await?;
+        Ok(r_hobbies)
+    }
 
     pub fn convert_to_gql(&self) -> GqlUser {
         GqlUser {

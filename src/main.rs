@@ -1,25 +1,23 @@
 use std::env;
 
-use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{Context, Data, EmptyMutation, EmptySubscription, Object, Schema};
-use async_graphql_axum::{GraphQL, GraphQLRequest, GraphQLResponse};
-use axum::response::{Html, IntoResponse};
-use axum::routing::post;
-use axum::{middleware, routing::get, Router, response};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
+use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
+use axum::{middleware, Router, routing::get};
 use axum::extract::State;
 use axum::http::HeaderMap;
+use axum::response::{Html, IntoResponse};
+use axum::routing::post;
 use dotenv::dotenv;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
-use crate::front_api::gql_mutations::Mutations;
+
 use crate::front_api::gql_query::Query;
 
 mod hobby_api;
 mod psql;
 mod services;
 mod front_api;
-
-pub(crate) struct QueryRoot;
 
 pub type LifehonSchema = Schema<Query, EmptyMutation, EmptySubscription>;
 
@@ -28,7 +26,7 @@ async fn graphql_handler(
     _headers: HeaderMap,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
-    let mut req = req.into_inner();
+    let req = req.into_inner();
     schema.execute(req).await.into()
 }
 
