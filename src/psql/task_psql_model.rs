@@ -1,6 +1,8 @@
 use chrono::{DateTime, Local, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
+use crate::front_api::gql_models::hobby_gql_model::GqlHobby;
+use crate::front_api::gql_models::task_gql_model::GqlTask;
 
 use crate::hobby_api::hapi_task::CreateTaskInput;
 
@@ -41,5 +43,28 @@ impl TaskModel {
             .fetch_one(pg_pool)
             .await?;
         Ok(r_task)
+    }
+
+
+    pub fn convert_to_gql(&self) -> GqlTask {
+        GqlTask {
+            id: self.id,
+            user_name: self.user_name.clone(),
+            hobby_name: self.hobby_name.clone(),
+            external_id: self.external_id.clone(),
+            name: self.name.clone(),
+            description: self.description.clone(),
+            public: self.public,
+            given_exp: self.given_exp,
+            created_at: self.created_at,
+            finished_at: self.finished_at,
+        }
+    }
+
+    pub fn convert_all_to_gql(task_models: &Vec<TaskModel>) -> Vec<GqlTask> {
+        task_models
+            .iter()
+            .map(TaskModel::convert_to_gql)
+            .collect::<Vec<GqlTask>>()
     }
 }

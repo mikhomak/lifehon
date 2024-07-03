@@ -32,4 +32,6 @@ impl UserQuery {
             }
         }
     }
+
+    async fn tasks<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<>>
 }
