@@ -1,33 +1,47 @@
 use std::env;
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema};
-use async_graphql_axum::GraphQL;
-use axum::response::Html;
+use async_graphql::{Context, Data, EmptyMutation, EmptySubscription, Object, Schema};
+use async_graphql_axum::{GraphQL, GraphQLRequest, GraphQLResponse};
+use axum::response::{Html, IntoResponse};
 use axum::routing::post;
-use axum::{middleware, routing::get, Router};
+use axum::{middleware, routing::get, Router, response};
+use axum::extract::State;
+use axum::http::HeaderMap;
 use dotenv::dotenv;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+use crate::front_api::gql_mutations::Mutations;
+use crate::front_api::gql_query::Query;
 
 mod hobby_api;
 mod psql;
 mod services;
+mod front_api;
 
 pub(crate) struct QueryRoot;
 
-#[Object]
-impl QueryRoot {
-    async fn hello(&self, _ctx: &Context<'_>) -> &'static str {
-        "Hello world"
-    }
+pub type LifehonSchema = Schema<Query, Mutations, EmptySubscription>;
+
+async fn graphql_handler(
+    State(schema): State<LifehonSchema>,
+    _headers: HeaderMap,
+    req: GraphQLRequest,
+) -> GraphQLResponse {
+    let mut req = req.into_inner();
+    schema.execute(req).await.into()
+}
+
+async fn graphql_playground() -> impl IntoResponse {
+    Html(playground_source(
+        GraphQLPlaygroundConfig::new("/").subscription_endpoint("/ws"),
+    ))
 }
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
     env_logger::init();
-    let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription).finish();
 
     let database_url: String = env::var("DATABASE_URL").expect("DATABASE_URL is not set");
     let db_pool: PgPool = PgPool::connect(&database_url).await.unwrap();
@@ -47,19 +61,20 @@ async fn main() {
             post(hobby_api::hapi_auth::check_token),
         )
         .route("/user/login/", post(hobby_api::hapi_auth::login_user))
-        .with_state(db_pool);
+        .with_state(db_pool.clone());
 
+    let schema: LifehonSchema =
+        Schema::build(Query::default(), Mutations::default(), EmptySubscription)
+            .data(db_pool)
+            .finish();
     let app = Router::new()
-        .route(
-            "/",
-            get(Html(playground_source(
-                GraphQLPlaygroundConfig::new("/").subscription_endpoint("/ws"),
-            )))
-            .post_service(GraphQL::new(schema)),
-        )
-        .nest("/api/v1/", hapi_routes);
+        .nest("/api/v1/", hapi_routes)
+        .route("/front-api/v1/", post(graphql_handler))
+        .route("/front-api/v1/playground", get(graphql_playground))
+        .with_state(schema);
 
-    println!("GraphiQL IDE: http://localhost:8600");
+
+    println!("GraphQL IDE: http://localhost:8600/front-api/v1/playground");
 
     axum::serve(TcpListener::bind("127.0.0.1:8600").await.unwrap(), app)
         .await
