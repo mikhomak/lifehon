@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
+use crate::front_api::gql_models::user_gql_model::GqlUser;
 use crate::hobby_api::hapi_user::CreateUserInput;
 
 #[derive(FromRow, Deserialize, Serialize, Debug, Clone)]
@@ -40,6 +41,16 @@ impl UserModel {
         Ok(r_user)
     }
 
+    pub async fn get_all(
+        pg_pool: &PgPool,
+    ) -> Result<Vec<UserModel>, sqlx::Error> {
+        let r_user: Vec<UserModel> =
+            sqlx::query_as!(UserModel, "SELECT * FROM l_user")
+                .fetch_all(pg_pool)
+                .await?;
+        Ok(r_user)
+    }
+
     pub async fn get_user_for_name(
         name: &String,
         pg_pool: &PgPool,
@@ -73,8 +84,8 @@ impl UserModel {
             name,
             password
         )
-        .fetch_one(pg_pool)
-        .await?;
+            .fetch_one(pg_pool)
+            .await?;
         Ok(r_user)
     }
 
@@ -88,8 +99,28 @@ impl UserModel {
             user_name,
             hobby_name,
         )
-        .execute(pg_pool)
-        .await?;
+            .execute(pg_pool)
+            .await?;
         Ok(())
+    }
+
+
+    pub fn convert_to_gql(&self) -> GqlUser {
+        GqlUser {
+            id: self.id,
+            name: self.name.clone(),
+            email: self.email.clone(),
+            login_enabled: self.login_enabled,
+            password: self.password.clone(),
+            created_at: self.created_at,
+            consent: self.consent,
+        }
+    }
+
+    pub fn convert_all_to_gql(user_models: &Vec<UserModel>) -> Vec<GqlUser> {
+        user_models
+            .iter()
+            .map(UserModel::convert_to_gql)
+            .collect::<Vec<GqlUser>>()
     }
 }

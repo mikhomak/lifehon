@@ -1,10 +1,22 @@
 use async_graphql::{ComplexObject, SimpleObject};
 use chrono;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-///#[derive(SimpleObject, Deserialize, Serialize)]
-///#[graphql(complex)]
+#[derive(SimpleObject, Deserialize, Serialize)]
+#[graphql(complex)]
+pub struct GqlUser {
+    pub id: sqlx::types::Uuid,
+    pub name: String,
+    pub email: String,
+    pub login_enabled: bool,
+    #[graphql(skip)]
+    pub password: String,
+    pub created_at: DateTime<Utc>,
+    pub consent: bool,
+}
 
-pub struct User {
-    pub i: i32,
+#[ComplexObject]
+impl GqlUser{
+
 }

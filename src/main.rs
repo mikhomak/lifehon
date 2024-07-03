@@ -21,7 +21,7 @@ mod front_api;
 
 pub(crate) struct QueryRoot;
 
-pub type LifehonSchema = Schema<Query, Mutations, EmptySubscription>;
+pub type LifehonSchema = Schema<Query, EmptyMutation, EmptySubscription>;
 
 async fn graphql_handler(
     State(schema): State<LifehonSchema>,
@@ -64,7 +64,7 @@ async fn main() {
         .with_state(db_pool.clone());
 
     let schema: LifehonSchema =
-        Schema::build(Query::default(), Mutations::default(), EmptySubscription)
+        Schema::build(Query::default(), EmptyMutation, EmptySubscription)
             .data(db_pool)
             .finish();
     let app = Router::new()
