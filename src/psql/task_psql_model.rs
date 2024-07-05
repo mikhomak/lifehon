@@ -45,6 +45,15 @@ impl TaskModel {
         Ok(r_task)
     }
 
+    pub async fn count_tasks_for_user(user_name: &String, pool: &PgPool) -> i64 {
+        let count = sqlx::query!("SELECT COUNT(task.*) FROM (l_task AS task LEFT JOIN l_user AS user ON task.user_name = user.name) WHERE user.name = $1",
+            user_name)
+            .fetch_one(pool)
+            .await;
+        count.map(|record| record.count)
+            .map(|option: Option<i64>| option.unwrap_or(0))
+            .unwrap_or(0)
+    }
 
     pub fn convert_to_gql(&self) -> GqlTask {
         GqlTask {

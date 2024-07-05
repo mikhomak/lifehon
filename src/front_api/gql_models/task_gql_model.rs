@@ -15,3 +15,10 @@ pub struct GqlTask {
     pub created_at: DateTime<Utc>,
     pub finished_at: DateTime<Utc>,
 }
+
+#[derive(SimpleObject, Deserialize, Serialize)]
+pub struct GqlTasksPagination {
+    pub tasks: Vec<GqlTask>,
+    pub pages: i64,
+    pub total_amount: Option<i64>,
+}

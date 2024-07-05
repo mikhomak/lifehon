@@ -5,6 +5,7 @@ use sqlx::{FromRow, PgPool};
 use crate::front_api::gql_models::user_gql_model::GqlUser;
 use crate::hobby_api::hapi_user::CreateUserInput;
 use crate::psql::hobby_psql_model::HobbyModel;
+use crate::psql::task_psql_model::TaskModel;
 
 #[derive(FromRow, Deserialize, Serialize, Debug, Clone)]
 pub struct UserModel {
@@ -116,6 +117,21 @@ impl UserModel {
         Ok(r_hobbies)
     }
 
+
+    pub async fn get_tasks_for_user_name(
+        user_name: &String,
+        page: i64,
+        pg_pool: &PgPool,
+    ) -> Result<Vec<TaskModel>, sqlx::Error> {
+        let r_task_models: Vec<TaskModel> =
+            sqlx::query_as!(TaskModel, "SELECT task.* FROM (l_task AS task LEFT JOIN l_user AS user ON task.user_name = user.name) WHERE user.name = $1 ORDER BY task.created_at DESC LIMIT $2 OFFSET $3",
+                user_name,
+                30,
+                page * 30)
+                .fetch_all(pg_pool)
+                .await?;
+        Ok(r_task_models)
+    }
     pub fn convert_to_gql(&self) -> GqlUser {
         GqlUser {
             id: self.id,
