@@ -1,11 +1,13 @@
-use async_graphql::{Context, FieldResult};
+use async_graphql::{Context, FieldResult, InputObject};
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
+
 use crate::front_api::gql_models::task_gql_model::GqlTask;
 use crate::front_api::gql_mutations::TaskMutations;
 use crate::front_api::utils;
 use crate::psql::task_psql_model::TaskModel;
 
+#[derive(InputObject)]
 pub struct CreateTaskInput {
     pub id: sqlx::types::Uuid,
     pub user_name: String,

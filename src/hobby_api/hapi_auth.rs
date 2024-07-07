@@ -12,6 +12,7 @@ use validator::Validate;
 
 use crate::hobby_api::HabiResult;
 use crate::psql::user_psql_model::UserModel;
+use crate::services::site_service;
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct LoginInput {
@@ -54,6 +55,9 @@ pub async fn login_user(
     State(pg_pool): State<PgPool>,
     Valid(Json(login_input)): Valid<Json<LoginInput>>,
 ) -> HabiResult<SuccessLogin> {
+    if !site_service::is_login_enabled(&pg_pool) {
+        return Err((StatusCode::SERVICE_UNAVAILABLE, "[LOGIN_006] Service in not available".to_string()));
+    }
     match UserModel::login_user(&login_input.user_name, &login_input.password, &pg_pool).await {
         Ok(user_model) => {
             let Ok(token) = create_token(&user_model.name, &user_model.email) else {

@@ -35,6 +35,7 @@ impl GqlUser {
 
         let r_hobby_models: Result<Vec<HobbyModel>, sqlx::Error> =
             UserModel::get_hobbies_for_user_name(&self.name, pool).await;
+
         match r_hobby_models {
             Ok(hobby_models) => Ok(HobbyModel::convert_all_to_gql(&hobby_models)),
             Err(_) => Err(async_graphql::Error::new("Hobbies not found!")),

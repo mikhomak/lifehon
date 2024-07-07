@@ -1,4 +1,5 @@
-pub struct CreateUserErrors {}
+pub struct CreateUserErrors;
+pub struct LoginErrors;
 
 impl CreateUserErrors {
     pub const NAME_TAKEN: &'static str = "[CREATE_USER_001] - the user name is already taken";
@@ -8,3 +9,5 @@ impl CreateUserErrors {
     pub const EMPTY_PASSWORD: &'static str = "[CREATE_USER_005] - the password is empty";
     pub const CONSENT_NOT_AGREED: &'static str = "[CREATE_USER_006] - the consent is not agreed";
 }
+
+impl LoginErrors {}

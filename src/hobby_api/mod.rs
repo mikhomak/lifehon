@@ -9,4 +9,4 @@ pub mod hapi_user;
 mod validation;
 
 
-pub type HabiResult<T> = Result<Json<T>, (StatusCode, String)>;
+pub type HabiResult<T> = Result<Json<T>, (StatusCode, &'static str)>;
