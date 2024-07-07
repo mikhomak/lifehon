@@ -61,7 +61,11 @@ async fn main() {
             post(hobby_api::hapi_auth::check_token),
         )
         .route("/user/login/", post(hobby_api::hapi_auth::login_user))
-        .with_state(db_pool.clone());
+        .with_state(db_pool.clone())
+        .route_layer(middleware::from_fn_with_state(
+            db_pool.clone(),
+            hobby_api::is_hapi_enabled_middleware,
+        ));
 
     let schema: LifehonSchema =
         Schema::build(Query::default(), Mutations::default(), EmptySubscription)
