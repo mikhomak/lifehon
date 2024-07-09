@@ -15,14 +15,11 @@ impl HobbyQuery {
             return Err(utils::error_database_not_setup());
         };
 
-        let r_hobbies: Result<Vec<HobbyModel>, sqlx::Error> = HobbyModel::get_all_hobbies(pool).await;
+        let r_hobbies: Result<Vec<HobbyModel>, sqlx::Error> =
+            HobbyModel::get_all_hobbies(pool).await;
         match r_hobbies {
-            Ok(hobby_models) => {
-                Ok(HobbyModel::convert_all_to_gql(&hobby_models))
-            }
-            Err(_) => {
-                Err(async_graphql::Error::new("Cannot find hobbies"))
-            }
+            Ok(hobby_models) => Ok(HobbyModel::convert_all_to_gql(&hobby_models)),
+            Err(_) => Err(async_graphql::Error::new("Cannot find hobbies")),
         }
     }
 }

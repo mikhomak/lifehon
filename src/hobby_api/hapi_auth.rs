@@ -55,15 +55,18 @@ pub async fn login_user(
     State(pg_pool): State<PgPool>,
     Valid(Json(login_input)): Valid<Json<LoginInput>>,
 ) -> HabiResult<SuccessLogin> {
-    if !site_service::is_login_enabled(&pg_pool) {
-        return Err((StatusCode::SERVICE_UNAVAILABLE, "[LOGIN_006] Service in not available".to_string()));
+    if !site_service::is_login_enabled(&pg_pool).await {
+        return Err((
+            StatusCode::SERVICE_UNAVAILABLE,
+            "[LOGIN_006] Service in not available",
+        ));
     }
     match UserModel::login_user(&login_input.user_name, &login_input.password, &pg_pool).await {
         Ok(user_model) => {
             let Ok(token) = create_token(&user_model.name, &user_model.email) else {
                 return Err((
                     StatusCode::SERVICE_UNAVAILABLE,
-                    "[LOGIN_003] Something went wrong...".to_string(),
+                    "[LOGIN_003] Something went wrong...",
                 ));
             };
 
@@ -71,7 +74,7 @@ pub async fn login_user(
         }
         Err(_) => Err((
             StatusCode::UNAUTHORIZED,
-            "[LOGIN_004] Credentials are not correct".to_string(),
+            "[LOGIN_004] Credentials are not correct",
         )),
     }
 }
@@ -79,10 +82,7 @@ pub async fn login_user(
 pub async fn check_token(token: String) -> HabiResult<SuccessLogin> {
     match decode_token(&token) {
         Ok(_) => Ok(Json(SuccessLogin { token })),
-        Err(_) => Err((
-            StatusCode::UNAUTHORIZED,
-            "[LOGIN_005] Bad token".to_string(),
-        )),
+        Err(_) => Err((StatusCode::UNAUTHORIZED, "[LOGIN_005] Bad token")),
     }
 }
 

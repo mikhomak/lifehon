@@ -1,25 +1,23 @@
 use std::env;
 
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
-use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
-use async_graphql::parser::types::OperationType::Mutation;
+use crate::front_api::gql_mutations::Mutations;
+use crate::front_api::gql_query::Query;
+use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+use async_graphql::{EmptySubscription, Schema};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-use axum::{middleware, Router, routing::get};
 use axum::extract::State;
 use axum::http::HeaderMap;
 use axum::response::{Html, IntoResponse};
 use axum::routing::post;
+use axum::{middleware, routing::get, Router};
 use dotenv::dotenv;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
-use crate::front_api::gql_mutations::Mutations;
 
-use crate::front_api::gql_query::Query;
-
+mod front_api;
 mod hobby_api;
 mod psql;
 mod services;
-mod front_api;
 
 pub type LifehonSchema = Schema<Query, Mutations, EmptySubscription>;
 
@@ -65,19 +63,28 @@ async fn main() {
         .route_layer(middleware::from_fn_with_state(
             db_pool.clone(),
             hobby_api::is_hapi_enabled_middleware,
+        ))
+        .route_layer(middleware::from_fn_with_state(
+            db_pool.clone(),
+            hobby_api::hapi_hobby_auth::hapi_token_middleware,
         ));
 
     let schema: LifehonSchema =
         Schema::build(Query::default(), Mutations::default(), EmptySubscription)
-            .data(db_pool)
+            .data(db_pool.clone())
             .finish();
 
     let app = Router::new()
         .nest("/api/v1/", hapi_routes)
-        .route("/front-api/v1/", post(graphql_handler))
+        .route(
+            "/front-api/v1/",
+            post(graphql_handler).route_layer(middleware::from_fn_with_state(
+                db_pool.clone(),
+                front_api::gql_auth::gql_auth_middleware
+            )),
+        )
         .route("/front-api/v1/playground", get(graphql_playground))
         .with_state(schema);
-
 
     println!("GraphQL IDE: http://localhost:8600/front-api/v1/playground");
 

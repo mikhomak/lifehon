@@ -1,5 +1,5 @@
-mod user_gql_mutations;
 mod task_gql_mutations;
+mod user_gql_mutations;
 
 use async_graphql::MergedObject;
 

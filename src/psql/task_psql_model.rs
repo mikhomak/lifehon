@@ -1,8 +1,7 @@
+use crate::front_api::gql_models::task_gql_model::GqlTask;
 use chrono::{DateTime, Local, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
-use crate::front_api::gql_models::hobby_gql_model::GqlHobby;
-use crate::front_api::gql_models::task_gql_model::GqlTask;
 
 use crate::hobby_api::hapi_task::CreateTaskInput;
 
@@ -46,11 +45,14 @@ impl TaskModel {
     }
 
     pub async fn count_tasks_for_user(user_name: &String, pool: &PgPool) -> i64 {
-        let count = sqlx::query!("SELECT COUNT(task.*) FROM (l_task AS task LEFT JOIN l_user AS user ON task.user_name = user.name) WHERE user.name = $1",
-            user_name)
-            .fetch_one(pool)
-            .await;
-        count.map(|record| record.count)
+        let count = sqlx::query!(
+            "SELECT COUNT(id) FROM l_task WHERE user_name = $1",
+            user_name
+        )
+        .fetch_one(pool)
+        .await;
+        count
+            .map(|record| record.count)
             .map(|option: Option<i64>| option.unwrap_or(0))
             .unwrap_or(0)
     }

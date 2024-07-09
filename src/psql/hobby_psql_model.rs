@@ -10,6 +10,7 @@ pub struct HobbyModel {
     pub created_at: DateTime<Utc>,
     pub enabled: bool,
     pub external_link: Option<String>,
+    pub token: String,
 }
 
 impl HobbyModel {
@@ -31,7 +32,6 @@ impl HobbyModel {
                 .await?;
         Ok(r_hobby)
     }
-
 
     pub fn convert_to_gql(&self) -> GqlHobby {
         GqlHobby {

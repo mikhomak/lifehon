@@ -14,7 +14,8 @@ values (1, true, true, true, true, true, true);
 
 CREATE TABLE "l_hobby"
 (
-    name       VARCHAR(50) NOT NULL,
+    name               VARCHAR(50) NOT NULL,
+    token              VARCHAR(255) NOT NULL,
     created_at         TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
     enabled            BOOL        NOT NULL DEFAULT TRUE,
     external_link      VARCHAR(254),
@@ -22,7 +23,7 @@ CREATE TABLE "l_hobby"
 );
 
 insert into l_hobby
-values ('habits');
+values ('habits', 'habbits');
 
 create TABLE "l_user"
 (

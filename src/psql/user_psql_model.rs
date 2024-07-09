@@ -43,13 +43,10 @@ impl UserModel {
         Ok(r_user)
     }
 
-    pub async fn get_all(
-        pg_pool: &PgPool,
-    ) -> Result<Vec<UserModel>, sqlx::Error> {
-        let r_user: Vec<UserModel> =
-            sqlx::query_as!(UserModel, "SELECT * FROM l_user")
-                .fetch_all(pg_pool)
-                .await?;
+    pub async fn get_all(pg_pool: &PgPool) -> Result<Vec<UserModel>, sqlx::Error> {
+        let r_user: Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM l_user")
+            .fetch_all(pg_pool)
+            .await?;
         Ok(r_user)
     }
 
@@ -86,8 +83,8 @@ impl UserModel {
             name,
             password
         )
-            .fetch_one(pg_pool)
-            .await?;
+        .fetch_one(pg_pool)
+        .await?;
         Ok(r_user)
     }
 
@@ -101,8 +98,8 @@ impl UserModel {
             user_name,
             hobby_name,
         )
-            .execute(pg_pool)
-            .await?;
+        .execute(pg_pool)
+        .await?;
         Ok(())
     }
 
@@ -117,14 +114,13 @@ impl UserModel {
         Ok(r_hobbies)
     }
 
-
     pub async fn get_tasks_for_user_name(
         user_name: &String,
         page: i64,
         pg_pool: &PgPool,
     ) -> Result<Vec<TaskModel>, sqlx::Error> {
         let r_task_models: Vec<TaskModel> =
-            sqlx::query_as!(TaskModel, "SELECT task.* FROM (l_task AS task LEFT JOIN l_user AS user ON task.user_name = user.name) WHERE user.name = $1 ORDER BY task.created_at DESC LIMIT $2 OFFSET $3",
+            sqlx::query_as!(TaskModel, "SELECT task.* FROM (l_task AS task JOIN l_user AS l_user ON task.user_name = l_user.name) WHERE l_user.name = $1 ORDER BY task.created_at DESC LIMIT $2 OFFSET $3",
                 user_name,
                 30,
                 page * 30)

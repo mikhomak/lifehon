@@ -23,9 +23,9 @@ impl UserQuery {
             Ok(users) => Ok(UserModel::convert_all_to_gql(&users)),
             Err(error) => {
                 error!(
-                            "Users couldn't be fetched from the db due to error {}",
-                            error.to_string()
-                        );
+                    "Users couldn't be fetched from the db due to error {}",
+                    error.to_string()
+                );
                 Err(async_graphql::Error::new(
                     "Users not found, error encountered",
                 ))
@@ -33,5 +33,5 @@ impl UserQuery {
         }
     }
 
-    async fn tasks<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<>>
+    //async fn tasks<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<>>
 }

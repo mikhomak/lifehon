@@ -18,7 +18,6 @@ pub async fn is_login_enabled(pg_pool: &PgPool) -> bool {
     r_is_login_enabled.unwrap_or_else(|_| false)
 }
 
-
 pub async fn is_hapi_allowed(pg_pool: &PgPool) -> bool {
     let r_allow_hobby_communication: Result<bool, _> =
         sqlx::query_scalar!("SELECT allow_hobby_communication FROM l_site_configuration")
@@ -27,4 +26,3 @@ pub async fn is_hapi_allowed(pg_pool: &PgPool) -> bool {
 
     r_allow_hobby_communication.unwrap_or_else(|_| false)
 }
-
