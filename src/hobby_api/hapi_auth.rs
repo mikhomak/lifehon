@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use validator::Validate;
 
-use crate::hobby_api::HabiResult;
+use crate::hobby_api::HapiResult;
 use crate::psql::user_psql_model::UserModel;
 use crate::services::site_service;
 
@@ -54,7 +54,7 @@ pub fn create_token(id: &String, email: &String) -> Result<String, jsonwebtoken:
 pub async fn login_user(
     State(pg_pool): State<PgPool>,
     Valid(Json(login_input)): Valid<Json<LoginInput>>,
-) -> HabiResult<SuccessLogin> {
+) -> HapiResult<SuccessLogin> {
     if !site_service::is_login_enabled(&pg_pool).await {
         return Err((
             StatusCode::SERVICE_UNAVAILABLE,
@@ -79,7 +79,7 @@ pub async fn login_user(
     }
 }
 
-pub async fn check_token(token: String) -> HabiResult<SuccessLogin> {
+pub async fn check_token(token: String) -> HapiResult<SuccessLogin> {
     match decode_token(&token) {
         Ok(_) => Ok(Json(SuccessLogin { token })),
         Err(_) => Err((StatusCode::UNAUTHORIZED, "[LOGIN_005] Bad token")),

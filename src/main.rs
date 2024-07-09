@@ -53,13 +53,11 @@ async fn main() {
             hobby_api::hapi_auth::auth_middleware,
         ))
         .route("/user/", post(hobby_api::hapi_user::create_user))
-        .route("/hobbies", get(hobby_api::hapi_hobby::get_all_hobbies))
         .route(
             "/user/login/token/",
             post(hobby_api::hapi_auth::check_token),
         )
         .route("/user/login/", post(hobby_api::hapi_auth::login_user))
-        .with_state(db_pool.clone())
         .route_layer(middleware::from_fn_with_state(
             db_pool.clone(),
             hobby_api::is_hapi_enabled_middleware,
@@ -67,7 +65,14 @@ async fn main() {
         .route_layer(middleware::from_fn_with_state(
             db_pool.clone(),
             hobby_api::hapi_hobby_auth::hapi_token_middleware,
-        ));
+        ))
+        .route("/hobbies/", get(hobby_api::hapi_hobby::get_all_hobbies))
+        .with_state(db_pool.clone());
+
+    let admin_routes = Router::new()
+        .route("/hobby/", post(hobby_api::hapi_hobby::create_hobby))
+        .with_state(db_pool.clone());
+
 
     let schema: LifehonSchema =
         Schema::build(Query::default(), Mutations::default(), EmptySubscription)
@@ -75,16 +80,17 @@ async fn main() {
             .finish();
 
     let app = Router::new()
-        .nest("/api/v1/", hapi_routes)
         .route(
             "/front-api/v1/",
             post(graphql_handler).route_layer(middleware::from_fn_with_state(
                 db_pool.clone(),
-                front_api::gql_auth::gql_auth_middleware
+                front_api::gql_auth::gql_auth_middleware,
             )),
         )
         .route("/front-api/v1/playground", get(graphql_playground))
-        .with_state(schema);
+        .with_state(schema)
+        .nest("/api/v1/", hapi_routes)
+        .nest("/api/v1/admin/", admin_routes);
 
     println!("GraphQL IDE: http://localhost:8600/front-api/v1/playground");
 

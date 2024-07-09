@@ -14,6 +14,25 @@ pub struct HobbyModel {
 }
 
 impl HobbyModel {
+
+    pub async fn create_token(
+        new_hobby: &HobbyModel,
+        pg_pool: &PgPool,
+    ) -> Result<HobbyModel, sqlx::Error> {
+        let r_hobby = sqlx::query_as!(
+            HobbyModel,
+            "INSERT INTO l_hobby(name, created_at, external_link, token) \
+            VALUES ($1,$2,$3,$4) \
+            RETURNING *",
+            new_hobby.name,
+            new_hobby.created_at,
+            new_hobby.external_link,
+            new_hobby.token)
+            .fetch_one(pg_pool)
+            .await?;
+        Ok(r_hobby)
+    }
+
     pub async fn get_all_hobbies(pool: &PgPool) -> Result<Vec<HobbyModel>, sqlx::Error> {
         let r_hobbies: Vec<HobbyModel> =
             sqlx::query_as!(HobbyModel, "SELECT * FROM l_hobby ORDER BY created_at")
@@ -28,6 +47,18 @@ impl HobbyModel {
     ) -> Result<HobbyModel, sqlx::Error> {
         let r_hobby: HobbyModel =
             sqlx::query_as!(HobbyModel, "SELECT * FROM l_hobby WHERE name = $1", name)
+                .fetch_one(pool)
+                .await?;
+        Ok(r_hobby)
+    }
+
+
+    pub async fn get_hobby_for_token(
+        token: &String,
+        pool: &PgPool,
+    ) -> Result<HobbyModel, sqlx::Error> {
+        let r_hobby: HobbyModel =
+            sqlx::query_as!(HobbyModel, "SELECT * FROM l_hobby WHERE token = $1", token)
                 .fetch_one(pool)
                 .await?;
         Ok(r_hobby)
