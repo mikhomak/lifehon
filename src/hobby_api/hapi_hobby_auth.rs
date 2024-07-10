@@ -12,11 +12,12 @@ use crate::psql::hobby_psql_model::HobbyModel;
 struct HobbyClaims {
     pub token: String,
 }
+
 fn decode_hapi_token(token: &str) -> Result<String, StatusCode> {
     let auth_secret: String =
         dotenv::var("HAPI_TOKEN_SECRET").expect("HAPI token secret is not set!");
 
-    let mut validation = Validation::default();
+    let mut validation: Validation = Validation::default();
     validation.validate_exp = false;
     validation.required_spec_claims.remove("exp");
     let Ok(decoded_token) = jsonwebtoken::decode::<HobbyClaims>(token, &DecodingKey::from_secret(auth_secret.as_bytes()), &validation) else {
@@ -36,7 +37,7 @@ pub fn encode_hapi_token(token: &String) -> Result<String, StatusCode> {
 
 pub async fn hapi_token_middleware(
     State(pg_pool): State<PgPool>,
-    request: Request,
+    mut request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let o_token: Option<&str> = request
@@ -48,14 +49,14 @@ pub async fn hapi_token_middleware(
         return Err(StatusCode::SERVICE_UNAVAILABLE);
     }
     if let Ok(token) = decode_hapi_token(o_token.unwrap()) {
-        if HobbyModel::get_hobby_for_token(&o_token.unwrap().to_string(), &pg_pool)
+        if let Ok(hobby_model) = HobbyModel::get_hobby_for_token(&o_token.unwrap().to_string(), &pg_pool)
             .await
-            .is_err()
         {
-            error!("While making a request to hapi, the hapi token is not correct! Decoded name - [{}], token - [{}]", token, o_token.unwrap());
-            return Err(StatusCode::SERVICE_UNAVAILABLE);
+            request.extensions_mut().insert(hobby_model);
+            return Ok(next.run(request).await);
         }
-        return Ok(next.run(request).await);
+        error!("While making a request to hapi, the hapi token is not correct! Decoded name - [{}], token - [{}]", token, o_token.unwrap());
+        return Err(StatusCode::SERVICE_UNAVAILABLE);
     }
     error!("While accessing the hapi, there was no token!");
     Err(StatusCode::SERVICE_UNAVAILABLE)

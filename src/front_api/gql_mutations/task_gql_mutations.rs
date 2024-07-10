@@ -46,9 +46,9 @@ impl TaskMutations {
         };
         match TaskModel::create_task(
             &user_model.email,
+            &create_task_input.hobby_name.clone(),
             &CreateTaskInput {
                 name: create_task_input.name.clone(),
-                hobby_name: create_task_input.hobby_name.clone(),
                 external_id: create_task_input.external_id.clone(),
                 description: create_task_input.description,
                 public: create_task_input.public,
@@ -58,7 +58,7 @@ impl TaskMutations {
             },
             &pool,
         )
-        .await
+            .await
         {
             Ok(task_model) => Ok(TaskModel::convert_to_gql(&task_model)),
             Err(error) => {

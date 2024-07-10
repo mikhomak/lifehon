@@ -4,7 +4,7 @@ use sqlx::{FromRow, PgPool};
 
 use crate::front_api::gql_models::hobby_gql_model::GqlHobby;
 
-#[derive(FromRow, Deserialize, Serialize)]
+#[derive(FromRow, Deserialize, Serialize, Clone)]
 pub struct HobbyModel {
     pub name: String,
     pub created_at: DateTime<Utc>,

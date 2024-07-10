@@ -10,11 +10,12 @@ use crate::psql::user_psql_model::UserModel;
 
 pub async fn validate_create_task(
     user_name: &String,
-    create_task_input: &CreateTaskInput,
+    hobby_name: &String,
+    _create_task_input: &CreateTaskInput,
     pg_pool: &PgPool,
 ) -> Result<(), ValidationError> {
     validate_user(user_name, pg_pool).await?;
-    validate_hobby(&create_task_input.hobby_name, pg_pool).await?;
+    validate_hobby(&hobby_name, pg_pool).await?;
     Ok(())
 }
 

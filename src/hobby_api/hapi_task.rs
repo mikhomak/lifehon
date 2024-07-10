@@ -8,6 +8,7 @@ use sqlx::PgPool;
 use validator::Validate;
 
 use crate::hobby_api::validation::task_validation;
+use crate::psql::hobby_psql_model::HobbyModel;
 use crate::psql::task_psql_model::TaskModel;
 use crate::psql::user_psql_model::UserModel;
 
@@ -15,8 +16,6 @@ use crate::psql::user_psql_model::UserModel;
 pub struct CreateTaskInput {
     #[validate(length(min = 1, message = ""))]
     pub name: String,
-    #[validate(length(min = 1, message = ""))]
-    pub hobby_name: String,
     #[validate(length(min = 1, message = ""))]
     pub external_id: String,
     pub description: Option<String>,
@@ -30,14 +29,15 @@ pub struct CreateTaskInput {
 pub async fn create_task(
     State(pg_pool): State<PgPool>,
     user_model: Extension<UserModel>,
+    hobby_model: Extension<HobbyModel>,
     Json(new_task): Json<CreateTaskInput>,
 ) -> Result<Json<TaskModel>, (StatusCode, String)> {
     if let Err(validation_error) =
-        task_validation::validate_create_task(&user_model.name, &new_task, &pg_pool).await
+        task_validation::validate_create_task(&user_model.name, &hobby_model.name, &new_task, &pg_pool).await
     {
         return Err((StatusCode::BAD_REQUEST, validation_error.to_string()));
     }
-    match TaskModel::create_task(&user_model.name, &new_task, &pg_pool).await {
+    match TaskModel::create_task(&user_model.name, &hobby_model.name, &new_task, &pg_pool).await {
         Ok(task_model) => {
             info!(
                 "Task has been created with name [{}] and external id [{}] for user [{}]",

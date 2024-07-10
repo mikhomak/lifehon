@@ -22,6 +22,7 @@ pub struct TaskModel {
 impl TaskModel {
     pub async fn create_task(
         user_name: &String,
+        hobby_name: &String,
         create_task: &CreateTaskInput,
         pg_pool: &PgPool,
     ) -> Result<TaskModel, sqlx::Error> {
@@ -32,7 +33,7 @@ impl TaskModel {
             RETURNING *",
             create_task.name,
             user_name,
-            create_task.hobby_name,
+            hobby_name,
             create_task.external_id,
             create_task.description.clone().unwrap_or(String::new()),
             create_task.created_at.unwrap_or(DateTime::from(Local::now())),
@@ -49,8 +50,8 @@ impl TaskModel {
             "SELECT COUNT(id) FROM l_task WHERE user_name = $1",
             user_name
         )
-        .fetch_one(pool)
-        .await;
+            .fetch_one(pool)
+            .await;
         count
             .map(|record| record.count)
             .map(|option: Option<i64>| option.unwrap_or(0))
