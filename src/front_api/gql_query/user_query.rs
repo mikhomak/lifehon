@@ -33,5 +33,26 @@ impl UserQuery {
         }
     }
 
-    //async fn tasks<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<>>
+    async fn get_user_for_name<'a>(&self, ctx: &'a Context<'_>, user_name: String) -> FieldResult<GqlUser> {
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
+
+        let r_user: Result<UserModel, sqlx::Error> = UserModel::get_user_for_name(&user_name, &pool).await;
+        match r_user {
+            Ok(user) => Ok(UserModel::convert_to_gql(&user)),
+            Err(error) => {
+                error!(
+                    "User [{}] couldn't be fetched from the db due to error {}",
+                    user_name,
+                    error.to_string()
+                );
+                Err(async_graphql::Error::new(
+                    "User not found, error encountered",
+                ))
+            }
+        }
+    }
 }
