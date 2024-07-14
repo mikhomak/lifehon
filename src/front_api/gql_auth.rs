@@ -1,19 +1,20 @@
-use crate::front_api::gql_guards::Role;
-use crate::psql::user_psql_model::UserModel;
 use axum::extract::{Request, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::middleware::Next;
 use axum::response::Response;
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
+use jsonwebtoken::{decode, DecodingKey, encode, EncodingKey, Header, TokenData, Validation};
 use log::error;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+
+use crate::front_api::gql_guards::Role;
+use crate::psql::user_psql_model::UserModel;
 
 pub struct Token(pub String);
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GqlLifehonClaims {
-    pub id: String,
+    pub name: String,
     pub email: String,
     exp: usize,
 }
@@ -59,11 +60,11 @@ pub async fn gql_auth_middleware(
 
 pub fn create_token(id: &String, email: &String) -> Result<String, async_graphql::Error> {
     let my_claims = GqlLifehonClaims {
-        id: id.clone(),
+        name: id.clone(),
         email: email.clone(),
         exp: 100000000000000,
     };
-    let auth_secret = dotenv::var("AUTH_SECRET").expect("Auth secret is not set!");
+    let auth_secret = dotenv::var("GQL_TOKEN_SECRET").expect("Auth secret is not set!");
     let token = encode(
         &Header::default(),
         &my_claims,
@@ -73,7 +74,7 @@ pub fn create_token(id: &String, email: &String) -> Result<String, async_graphql
 }
 
 pub fn get_token(token: &String) -> Result<TokenData<GqlLifehonClaims>, async_graphql::Error> {
-    let auth_secret = dotenv::var("AUTH_SECRET").expect("Auth secret is not set!");
+    let auth_secret = dotenv::var("GQL_TOKEN_SECRET").expect("Auth secret is not set!");
     let token: TokenData<GqlLifehonClaims> = decode::<GqlLifehonClaims>(
         token,
         &DecodingKey::from_secret(auth_secret.as_ref()),
