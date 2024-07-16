@@ -2,6 +2,7 @@ use async_graphql::MergedObject;
 
 mod hobby_query;
 mod user_query;
+mod login_query;
 
 #[derive(Default)]
 pub struct UserQuery;
@@ -13,4 +14,4 @@ pub struct HobbyQuery;
 pub struct LoginQuery;
 
 #[derive(MergedObject, Default)]
-pub struct Query(UserQuery, HobbyQuery);
+pub struct Query(UserQuery, HobbyQuery, LoginQuery);
