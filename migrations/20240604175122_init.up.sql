@@ -44,6 +44,7 @@ create TABLE "rel_user2hobby"
 (
     hobby_name VARCHAR(50) NOT NULL REFERENCES "l_hobby" (name),
     user_name  VARCHAR(50) NOT NULL REFERENCES "l_user" (name),
+    enabled    bool        NOT NULL DEFAULT TRUE,
     PRIMARY KEY (hobby_name, user_name)
 );
 

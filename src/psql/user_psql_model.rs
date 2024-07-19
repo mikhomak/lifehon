@@ -119,7 +119,9 @@ impl UserModel {
         pg_pool: &PgPool,
     ) -> Result<Vec<HobbyModel>, sqlx::Error> {
         let r_hobbies: Vec<HobbyModel> =
-            sqlx::query_as!(HobbyModel, r#"SELECT hobby.name as "name!", hobby.created_at as "created_at!", hobby.enabled as "enabled!", hobby.external_link, hobby.token as "token!" FROM (l_hobby AS hobby LEFT JOIN rel_user2hobby AS r_u2h ON hobby.name = r_u2h.hobby_name) WHERE (r_u2h.user_name IS DISTINCT FROM $1) "#, user_name)
+            sqlx::query_as!(HobbyModel, r#"SELECT hobby.name as "name!", hobby.created_at as "created_at!", hobby.enabled as "enabled!", hobby.external_link, hobby.token as "token!"
+             FROM (l_hobby AS hobby LEFT JOIN rel_user2hobby AS r_u2h ON hobby.name = r_u2h.hobby_name)
+             WHERE (r_u2h.user_name IS DISTINCT FROM $1) "#, user_name)
                 .fetch_all(pg_pool)
                 .await?;
         Ok(r_hobbies)
