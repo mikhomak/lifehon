@@ -39,6 +39,7 @@ impl UserMutations {
 
         let is_registration_enabled: bool =
             services::site_service::is_registration_allowed(pool).await;
+
         if is_registration_enabled == false {
             return Err(async_graphql::Error::new("Registration failed!"));
         }
