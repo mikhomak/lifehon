@@ -42,6 +42,22 @@ impl GqlUser {
         }
     }
 
+    async fn all_available_hobbies(&self, ctx: &Context<'_>) -> FieldResult<Vec<GqlHobby>> {
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
+
+        let r_hobby_models: Result<Vec<HobbyModel>, sqlx::Error> = UserModel::get_available_hobbies_for_user_name(&self.name, pool).await;
+
+        match r_hobby_models {
+            Ok(hobby_models) => Ok(HobbyModel::convert_all_to_gql(&hobby_models)),
+            Err(_) => Err(async_graphql::Error::new("Hobbies not found!")),
+        }
+    }
+
+
     async fn tasks(&self, ctx: &Context<'_>, page: i64) -> FieldResult<GqlTasksPagination> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 

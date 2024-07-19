@@ -1,9 +1,11 @@
-use async_graphql::{Context, ErrorExtensions, FieldResult, InputObject};
+use async_graphql::{Context, ErrorExtensions, FieldResult, InputObject, SimpleObject};
 use chrono::{DateTime, Utc};
-use log::error;
-use sqlx::PgPool;
+use log::{error, info};
+use serde::{Deserialize, Serialize};
+use sqlx::{Error, PgPool};
 
 use crate::front_api::gql_models::task_gql_model::GqlTask;
+use crate::front_api::gql_models::user_gql_model::GqlUser;
 use crate::front_api::gql_mutations::TaskMutations;
 use crate::front_api::utils;
 use crate::hobby_api::hapi_task::CreateTaskInput;
@@ -24,6 +26,11 @@ pub struct GqlCreateTaskInput {
     pub finished_at: Option<DateTime<Utc>>,
 }
 
+#[derive(SimpleObject, Deserialize, Serialize)]
+struct GqlAddHobbyToUserOutput {
+    pub user_name: String,
+    pub hobby_name: String,
+}
 #[async_graphql::Object]
 impl TaskMutations {
     async fn add_task(
@@ -70,6 +77,31 @@ impl TaskMutations {
                error.to_string());
 
                 Err(async_graphql::Error::new("").extend_with(|_, e| e.set("error_code", "asdsad")))
+            }
+        }
+    }
+
+    async fn add_hobby(
+        &self,
+        ctx: &Context<'_>,
+        user_name: String,
+        hobby_name: String,
+    ) -> FieldResult<GqlAddHobbyToUserOutput> {
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
+
+        match UserModel::add_hobby_to_user(&user_name, &hobby_name, pool).await {
+            Ok(_) => {
+                info!("Hobby [{}] added to user [{}]", hobby_name, user_name);
+                Ok(GqlAddHobbyToUserOutput { user_name, hobby_name })
+            }
+            Err(error) => {
+                error!("Error at adding hobby [{}] to user [{}]. Error is [{}] ",
+                hobby_name, user_name, error.to_string());
+                Err(async_graphql::Error::new("Error at adding the hobby!"))
             }
         }
     }
