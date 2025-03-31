@@ -7,5 +7,6 @@ pub struct GqlHobby {
     pub name: String,
     pub created_at: DateTime<Utc>,
     pub enabled: bool,
-    pub external_link: Option<String>,
+    pub external_url: String,
+    pub create_user_callback: String,
 }

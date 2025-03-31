@@ -9,7 +9,8 @@ pub struct HobbyModel {
     pub name: String,
     pub created_at: DateTime<Utc>,
     pub enabled: bool,
-    pub external_link: Option<String>,
+    pub external_url: String,
+    pub create_user_callback: String,
     pub token: String,
 }
 
@@ -21,13 +22,15 @@ impl HobbyModel {
     ) -> Result<HobbyModel, sqlx::Error> {
         let r_hobby = sqlx::query_as!(
             HobbyModel,
-            "INSERT INTO l_hobby(name, created_at, external_link, token) \
-            VALUES ($1,$2,$3,$4) \
+            "INSERT INTO l_hobby(name, created_at, token, external_url, create_user_callback) \
+            VALUES ($1,$2,$3,$4,$5) \
             RETURNING *",
             new_hobby.name,
             new_hobby.created_at,
-            new_hobby.external_link,
-            new_hobby.token)
+            new_hobby.token,
+            new_hobby.external_url,
+            new_hobby.create_user_callback
+            )
             .fetch_one(pg_pool)
             .await?;
         Ok(r_hobby)
@@ -69,7 +72,8 @@ impl HobbyModel {
             name: self.name.clone(),
             created_at: self.created_at,
             enabled: self.enabled,
-            external_link: self.external_link.clone(),
+            external_url: self.external_url.clone(),
+            create_user_callback: self.create_user_callback.clone(),
         }
     }
 

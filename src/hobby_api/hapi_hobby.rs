@@ -13,7 +13,8 @@ use crate::psql::hobby_psql_model::HobbyModel;
 pub struct CreateHobbyInput {
     pub name: String,
     pub created_at: Option<DateTime<Utc>>,
-    pub external_link: Option<String>,
+    pub external_url: String,
+    pub create_user_callback: String,
     pub password: String,
 }
 
@@ -43,7 +44,8 @@ pub async fn create_hobby(
         name: new_hobby.name.clone(),
         created_at: new_hobby.created_at.unwrap_or(DateTime::from(Local::now())),
         enabled: true,
-        external_link: None,
+        external_url: new_hobby.external_url.clone(),
+        create_user_callback: new_hobby.create_user_callback.clone(),
         token,
     }, &pg_pool).await {
         Ok(hobby) => { Ok(Json(hobby)) }
