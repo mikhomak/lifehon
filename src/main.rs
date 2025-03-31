@@ -21,6 +21,7 @@ mod psql;
 mod services;
 
 pub type LifehonSchema = Schema<Query, Mutations, EmptySubscription>;
+
 #[debug_handler]
 async fn graphql_handler(
     State(schema): State<LifehonSchema>,
@@ -49,6 +50,7 @@ async fn main() {
         .route("/user/{name}", get(hobby_api::hapi_user::get_user_for_name))
         .route("/user/task/", post(hobby_api::hapi_task::create_task))
         .route("/user/hobby/", post(hobby_api::hapi_user::add_hobby))
+        // user auth
         .route_layer(middleware::from_fn_with_state(
             db_pool.clone(),
             hobby_api::hapi_auth::auth_middleware,
@@ -59,6 +61,7 @@ async fn main() {
             post(hobby_api::hapi_auth::check_token),
         )
         .route("/user/login/", post(hobby_api::hapi_auth::login_user))
+        // hapi auth
         .route_layer(middleware::from_fn_with_state(
             db_pool.clone(),
             hobby_api::is_hapi_enabled_middleware,
@@ -68,6 +71,7 @@ async fn main() {
             hobby_api::hapi_hobby_auth::hapi_token_middleware,
         ))
         .route("/hobbies/", get(hobby_api::hapi_hobby::get_all_hobbies))
+        // no auth
         .with_state(db_pool.clone());
 
     let admin_routes = Router::new()
