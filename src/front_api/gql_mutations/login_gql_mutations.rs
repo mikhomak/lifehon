@@ -1,13 +1,10 @@
 use async_graphql::{Context, FieldResult, InputObject};
-use jsonwebtoken::TokenData;
 use log::error;
 use sqlx::PgPool;
 
-use crate::front_api::{gql_auth, utils};
-use crate::front_api::gql_auth::{create_token, GqlLifehonClaims};
-use crate::front_api::gql_models::user_gql_model::GqlUser;
-use crate::front_api::gql_mutations::{LoginMutations, UserMutations};
-use crate::hobby_api::hapi_user::CreateUserInput;
+use crate::front_api::utils;
+use crate::front_api::gql_auth::create_token;
+use crate::front_api::gql_mutations::LoginMutations;
 use crate::psql::user_psql_model::UserModel;
 use crate::services;
 

@@ -1,7 +1,6 @@
-use std::future::Future;
 use async_graphql::{Context, FieldResult, Object};
 use log::error;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use crate::front_api::gql_query::LoginQuery;
 use crate::front_api::{gql_auth, utils};
 use crate::front_api::gql_models::user_gql_model::GqlUser;

@@ -1,11 +1,9 @@
-use async_graphql::{Context, ErrorExtensions, FieldResult, InputObject, SimpleObject};
+use async_graphql::{Context, ErrorExtensions, FieldResult, InputObject};
 use chrono::{DateTime, Utc};
-use log::{error, info};
-use serde::{Deserialize, Serialize};
-use sqlx::{Error, PgPool};
+use log::error;
+use sqlx::PgPool;
 
 use crate::front_api::gql_models::task_gql_model::GqlTask;
-use crate::front_api::gql_models::user_gql_model::GqlUser;
 use crate::front_api::gql_mutations::TaskMutations;
 use crate::front_api::utils;
 use crate::hobby_api::hapi_task::CreateTaskInput;

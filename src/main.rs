@@ -10,6 +10,7 @@ use axum::http::HeaderMap;
 use axum::response::{Html, IntoResponse};
 use axum::routing::post;
 use axum::{middleware, routing::get, Router};
+use axum_macros::debug_handler;
 use dotenv::dotenv;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -20,7 +21,7 @@ mod psql;
 mod services;
 
 pub type LifehonSchema = Schema<Query, Mutations, EmptySubscription>;
-
+#[debug_handler]
 async fn graphql_handler(
     State(schema): State<LifehonSchema>,
     _headers: HeaderMap,
