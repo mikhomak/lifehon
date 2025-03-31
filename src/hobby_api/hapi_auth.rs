@@ -51,6 +51,7 @@ pub fn create_token(id: &String, email: &String) -> Result<String, jsonwebtoken:
     Ok(token)
 }
 
+#[axum_macros::debug_handler]
 pub async fn login_user(
     State(pg_pool): State<PgPool>,
     Valid(Json(login_input)): Valid<Json<LoginInput>>,

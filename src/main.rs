@@ -46,7 +46,7 @@ async fn main() {
     let db_pool: PgPool = PgPool::connect(&database_url).await.unwrap();
 
     let hapi_routes = Router::new()
-        .route("/user/:name", get(hobby_api::hapi_user::get_user_for_name))
+        .route("/user/{name}", get(hobby_api::hapi_user::get_user_for_name))
         .route("/user/task/", post(hobby_api::hapi_task::create_task))
         .route("/user/hobby/", post(hobby_api::hapi_user::add_hobby))
         .route_layer(middleware::from_fn_with_state(
