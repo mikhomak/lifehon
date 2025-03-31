@@ -56,8 +56,8 @@ impl UserModel {
     ) -> Result<UserModel, sqlx::Error> {
         let r_user: UserModel =
             sqlx::query_as!(UserModel, "SELECT * FROM l_user WHERE name = $1", name)
-                .fetch_one(pg_pool)
-                .await?;
+            .fetch_one(pg_pool)
+            .await?;
         Ok(r_user)
     }
 
@@ -67,8 +67,8 @@ impl UserModel {
     ) -> Result<UserModel, sqlx::Error> {
         let r_user: UserModel =
             sqlx::query_as!(UserModel, "SELECT * FROM l_user WHERE email = $1", email)
-                .fetch_one(pg_pool)
-                .await?;
+            .fetch_one(pg_pool)
+            .await?;
         Ok(r_user)
     }
 
@@ -92,15 +92,31 @@ impl UserModel {
         user_name: &String,
         hobby_name: &String,
         pg_pool: &PgPool,
-    ) -> Result<(), sqlx::Error> {
-        let _ = sqlx::query!(
-            "INSERT INTO rel_user2hobby(user_name, hobby_name) VALUES($1,$2)",
+    ) -> Result<HobbyModel, sqlx::Error> {
+        let hobby : HobbyModel = sqlx::query_as!(
+            HobbyModel,
+            r#"
+WITH
+  inserted_hobby_to_user AS (
+    INSERT INTO
+      rel_user2hobby (user_name, hobby_name)
+    VALUES
+      ($1, $2)
+    RETURNING
+      *
+  )
+SELECT
+  h.*
+FROM
+  inserted_hobby_to_user h2u
+  JOIN l_hobby h ON h.name = h2u.hobby_name;
+            "#,
             user_name,
             hobby_name,
         )
-            .execute(pg_pool)
+            .fetch_one(pg_pool)
             .await?;
-        Ok(())
+        Ok(hobby)
     }
 
     pub async fn get_hobbies_for_user_name(
@@ -109,8 +125,8 @@ impl UserModel {
     ) -> Result<Vec<HobbyModel>, sqlx::Error> {
         let r_hobbies: Vec<HobbyModel> =
             sqlx::query_as!(HobbyModel, "SELECT hobby.* FROM (l_hobby AS hobby LEFT JOIN rel_user2hobby AS r_u2h ON hobby.name = r_u2h.hobby_name) WHERE r_u2h.user_name = $1", user_name)
-                .fetch_all(pg_pool)
-                .await?;
+            .fetch_all(pg_pool)
+            .await?;
         Ok(r_hobbies)
     }
 
@@ -122,8 +138,8 @@ impl UserModel {
             sqlx::query_as!(HobbyModel, r#"SELECT hobby.name as "name!", hobby.created_at as "created_at!", hobby.enabled as "enabled!", hobby.external_url as "external_url!", hobby.create_user_callback as "create_user_callback!", hobby.token as "token!"
              FROM (l_hobby AS hobby LEFT JOIN rel_user2hobby AS r_u2h ON hobby.name = r_u2h.hobby_name)
              WHERE (r_u2h.user_name IS DISTINCT FROM $1) "#, user_name)
-                .fetch_all(pg_pool)
-                .await?;
+            .fetch_all(pg_pool)
+            .await?;
         Ok(r_hobbies)
     }
 
@@ -134,11 +150,11 @@ impl UserModel {
     ) -> Result<Vec<TaskModel>, sqlx::Error> {
         let r_task_models: Vec<TaskModel> =
             sqlx::query_as!(TaskModel, "SELECT task.* FROM (l_task AS task JOIN l_user AS l_user ON task.user_name = l_user.name) WHERE l_user.name = $1 ORDER BY task.created_at DESC LIMIT $2 OFFSET $3",
-                user_name,
-                30,
-                page * 30)
-                .fetch_all(pg_pool)
-                .await?;
+            user_name,
+            30,
+            page * 30)
+            .fetch_all(pg_pool)
+            .await?;
         Ok(r_task_models)
     }
     pub fn convert_to_gql(&self) -> GqlUser {

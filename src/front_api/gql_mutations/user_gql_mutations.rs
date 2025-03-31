@@ -76,16 +76,15 @@ impl UserMutations {
             return Err(utils::error_database_not_setup());
         };
 
-        match UserModel::add_hobby_to_user(&user_name, &hobby_name, pool).await {
-            Ok(_) => {
-                info!("Hobby [{}] added to user [{}]", hobby_name, user_name);
-                Ok(GqlAddHobbyToUserOutput { user_name, hobby_name })
-            }
-            Err(error) => {
-                error!("Error at adding hobby [{}] to user [{}]. Error is [{}] ",
-                hobby_name, user_name, error.to_string());
-                Err(async_graphql::Error::new("Error at adding the hobby!"))
-            }
-        }
+        let r_hobby_to_user = UserModel::add_hobby_to_user(&user_name, &hobby_name, pool).await;
+
+        let Ok(hobby_model) = r_hobby_to_user else {
+            error!("Error at adding hobby [{}] to user [{}]. Error is [{}] ",
+                hobby_name, user_name, r_hobby_to_user.err().unwrap().to_string());
+            return Err(async_graphql::Error::new("Could not add hobby to the user"));
+        };
+
+        info!("Hobby [{}] added to user [{}]", hobby_name, user_name);
+        Ok(GqlAddHobbyToUserOutput { user_name, hobby_name })
     }
 }
