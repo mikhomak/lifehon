@@ -2,6 +2,7 @@
 
 docker run \
 	--name lifehon_db \
+	-t \
 	-e POSTGRES_USER=lifehon \
 	-e POSTGRES_PASSWORD=password \
 	-e POSTGRES_DB=lifehon \

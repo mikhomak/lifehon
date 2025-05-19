@@ -54,4 +54,5 @@ pub async fn create_hobby(
             Err((StatusCode::BAD_REQUEST, "The hobby was not created!"))
         }
     }
+
 }

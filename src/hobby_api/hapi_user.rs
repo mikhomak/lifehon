@@ -9,6 +9,7 @@ use validator::Validate;
 
 use crate::hobby_api::validation::user_validation;
 use crate::psql::user_psql_model::UserModel;
+use crate::psql::hobby_psql_model::HobbyModel;
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct CreateUserInput {
@@ -104,4 +105,18 @@ pub async fn add_hobby(
             ))
         }
     }
+}
+
+pub async fn send_user_to_hnode(
+    user_model: &UserModel,
+    hobby_model: &HobbyModel,
+    pg_pool: &PgPool
+) -> Result<(), String> {
+    let client = reqwest::Client::new();
+    let url = format!("{}\\{}", &hobby_model.external_url, &hobby_model.create_user_callback);
+    let response = client.post(url)
+        .send()
+        .await;
+
+    Ok(()) 
 }
