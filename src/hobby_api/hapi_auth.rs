@@ -9,10 +9,12 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, 
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use validator::Validate;
+use log::info;
 
 use crate::hobby_api::HapiResult;
 use crate::psql::user_psql_model::UserModel;
 use crate::services::site_service;
+use crate::front_api::gql_auth::get_token;
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct LoginInput {
@@ -22,81 +24,35 @@ pub struct LoginInput {
     pub password: String,
 }
 
+
+#[derive(Deserialize, Serialize, Validate)]
+pub struct CheckTokenInput {
+    #[validate(length(min = 1, message = "[LOGIN_005] - Bad token"))]
+    pub token: String,
+}
+
 #[derive(Deserialize, Serialize)]
 pub struct SuccessLogin {
     pub token: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct HapiClaims {
-    pub id: String,
-    pub email: String,
-    exp: usize,
-    iat: i64,
+#[derive(Deserialize, Serialize)]
+pub struct UserInfo {
+    pub user_name: String,
+    pub user_id: i64,
+    pub public_profile: bool,
 }
 
-pub fn create_token(id: &String, email: &String) -> Result<String, jsonwebtoken::errors::Error> {
-    let my_claims = HapiClaims {
-        id: id.clone(),
-        email: email.clone(),
-        exp: 3600000000000,
-        iat: chrono::offset::Local::now().timestamp(),
-    };
-    let auth_secret = dotenv::var("TOKEN_SECRET").expect("Auth secret is not set!");
-    let token = encode(
-        &Header::default(),
-        &my_claims,
-        &EncodingKey::from_secret(auth_secret.as_ref()),
-    )?;
-    Ok(token)
-}
-
-#[axum_macros::debug_handler]
-pub async fn login_user(
-    State(pg_pool): State<PgPool>,
-    Valid(Json(login_input)): Valid<Json<LoginInput>>,
-) -> HapiResult<SuccessLogin> {
-    if !site_service::is_login_enabled(&pg_pool).await {
-        return Err((
-            StatusCode::SERVICE_UNAVAILABLE,
-            "[LOGIN_006] Service in not available",
-        ));
-    }
-    match UserModel::login_user(&login_input.user_name, &login_input.password, &pg_pool).await {
-        Ok(user_model) => {
-            let Ok(token) = create_token(&user_model.name, &user_model.email) else {
-                return Err((
-                    StatusCode::SERVICE_UNAVAILABLE,
-                    "[LOGIN_003] Something went wrong...",
-                ));
-            };
-
-            Ok(Json(SuccessLogin { token }))
-        }
-        Err(_) => Err((
-            StatusCode::UNAUTHORIZED,
-            "[LOGIN_004] Credentials are not correct",
-        )),
-    }
-}
-
-pub async fn check_token(token: String) -> HapiResult<SuccessLogin> {
-    match decode_token(&token) {
-        Ok(_) => Ok(Json(SuccessLogin { token })),
+pub async fn check_token(Valid(Json(tokenInput)): Valid<Json<CheckTokenInput>>) -> HapiResult<UserInfo> {
+    match get_token(&tokenInput.token) {
+        Ok(Claims) => Ok(Json(UserInfo { 
+            user_name: Claims.claims.name,
+            user_id: Claims.claims.id,
+            public_profile: true
+        })),
         Err(_) => Err((StatusCode::UNAUTHORIZED, "[LOGIN_005] Bad token")),
     }
 }
-
-fn decode_token(token: &String) -> Result<TokenData<HapiClaims>, Error> {
-    let auth_secret = dotenv::var("TOKEN_SECRET").expect("Auth secret is not set!");
-    let token: TokenData<HapiClaims> = decode::<HapiClaims>(
-        token,
-        &DecodingKey::from_secret(auth_secret.as_ref()),
-        &Validation::default(),
-    )?;
-    Ok(token)
-}
-
 pub async fn auth_middleware(
     State(pg_pool): State<PgPool>,
     mut request: Request,
@@ -110,7 +66,7 @@ pub async fn auth_middleware(
     if o_token.is_none() {
         return Err(StatusCode::UNAUTHORIZED);
     }
-    if let Ok(claims) = decode_token(&o_token.unwrap().to_string()) {
+    if let Ok(claims) = get_token(&o_token.unwrap().to_string()) {
         if let Ok(user) = UserModel::get_user_for_email(&claims.claims.email, &pg_pool).await {
             request.extensions_mut().insert(claims.claims);
             request.extensions_mut().insert(user);

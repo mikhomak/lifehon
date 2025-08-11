@@ -9,7 +9,7 @@ use crate::psql::task_psql_model::TaskModel;
 
 #[derive(FromRow, Deserialize, Serialize, Debug, Clone)]
 pub struct UserModel {
-    pub id: sqlx::types::Uuid,
+    pub id: i64, 
     pub name: String,
     pub display_name: String,
     pub email: String,
@@ -135,7 +135,7 @@ FROM
         pg_pool: &PgPool,
     ) -> Result<Vec<HobbyModel>, sqlx::Error> {
         let r_hobbies: Vec<HobbyModel> =
-            sqlx::query_as!(HobbyModel, r#"SELECT hobby.name as "name!", hobby.created_at as "created_at!", hobby.enabled as "enabled!", hobby.external_url as "external_url!", hobby.create_user_callback as "create_user_callback!", hobby.token as "token!"
+            sqlx::query_as!(HobbyModel, r#"SELECT hobby.name as "name!", hobby.created_at as "created_at!", hobby.enabled as "enabled!", hobby.external_url as "external_url!", hobby.token as "token!"
              FROM (l_hobby AS hobby LEFT JOIN rel_user2hobby AS r_u2h ON hobby.name = r_u2h.hobby_name)
              WHERE (r_u2h.user_name IS DISTINCT FROM $1) "#, user_name)
             .fetch_all(pg_pool)

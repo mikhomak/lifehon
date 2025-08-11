@@ -48,19 +48,18 @@ async fn main() {
 
     let hapi_routes = Router::new()
         .route("/user/{name}", get(hobby_api::hapi_user::get_user_for_name))
-        .route("/user/task/", post(hobby_api::hapi_task::create_task))
-        .route("/user/hobby/", post(hobby_api::hapi_user::add_hobby))
+        .route("/user/task", post(hobby_api::hapi_task::create_task))
+        .route("/user/hobby", post(hobby_api::hapi_user::add_hobby))
         // user auth
         .route_layer(middleware::from_fn_with_state(
             db_pool.clone(),
             hobby_api::hapi_auth::auth_middleware,
         ))
-        .route("/user/", post(hobby_api::hapi_user::create_user))
+        .route("/user", post(hobby_api::hapi_user::create_user))
         .route(
-            "/user/login/token/",
+            "/user/login/token",
             post(hobby_api::hapi_auth::check_token),
         )
-        .route("/user/login/", post(hobby_api::hapi_auth::login_user))
         // hapi auth
         .route_layer(middleware::from_fn_with_state(
             db_pool.clone(),
@@ -70,12 +69,12 @@ async fn main() {
             db_pool.clone(),
             hobby_api::hapi_hobby_auth::hapi_token_middleware,
         ))
-        .route("/hobbies/", get(hobby_api::hapi_hobby::get_all_hobbies))
+        .route("/hobbies", get(hobby_api::hapi_hobby::get_all_hobbies))
         // no auth
         .with_state(db_pool.clone());
 
     let admin_routes = Router::new()
-        .route("/hobby/", post(hobby_api::hapi_hobby::create_hobby))
+        .route("/hobby", post(hobby_api::hapi_hobby::create_hobby))
         .with_state(db_pool.clone());
 
 
@@ -98,6 +97,7 @@ async fn main() {
         .nest("/api/v1/admin/", admin_routes);
 
     println!("GraphQL IDE: http://localhost:8600/front-api/v1/playground");
+    println!("Hapi is: http://localhost:8600/api/v1/");
 
     axum::serve(TcpListener::bind("127.0.0.1:8600").await.unwrap(), app)
         .await

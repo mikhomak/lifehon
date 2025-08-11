@@ -14,7 +14,7 @@ use sqlx::PgPool;
 #[derive(SimpleObject, Deserialize, Serialize)]
 #[graphql(complex)]
 pub struct GqlUser {
-    pub id: sqlx::types::Uuid,
+    pub id: i64,
     pub name: String,
     pub email: String,
     pub login_enabled: bool,

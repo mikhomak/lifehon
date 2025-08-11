@@ -38,10 +38,10 @@ impl LoginMutations {
             UserModel::login_user(&login_input.name, &login_input.password, &pool).await;
 
         match r_user {
-            Ok(user_model) => Ok(return match create_token(&user_model.name, &user_model.email) {
+            Ok(user_model) => match create_token(&user_model.name, &user_model.email, &user_model.id) {
                 Ok(token) => Ok(token),
                 Err(_error) => Err(async_graphql::Error::new("Login failed!"))
-            }),
+            },
             Err(_) => {
                 error!("Cannot login user!");
                 Err(async_graphql::Error::new("Login failed!"))

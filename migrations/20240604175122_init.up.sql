@@ -19,16 +19,15 @@ CREATE TABLE "l_hobby"
 	created_at         TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
 	enabled            BOOL        NOT NULL DEFAULT TRUE,
 	external_url      VARCHAR(254) NOT NULL,
-	create_user_callback  VARCHAR(254) NOT NULL,
 	PRIMARY KEY (name)
 );
 
-insert into l_hobby (name, token, external_url, create_user_callback)
-values ('habits', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6InBsYW50c3MifQ.EQJZdd0SvXiVAj6vJsVr4RDq35GtXIimAuMFmCoZt9U', 'http://localhost:6677/v1/hapi', '/create_user');
+insert into l_hobby (name, token, external_url)
+values ('habits', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6InBsYW50c3MifQ.EQJZdd0SvXiVAj6vJsVr4RDq35GtXIimAuMFmCoZt9U', 'http://localhost:6677/v1/hapi');
 
 create TABLE "l_user"
 (
-	id             UUID         NOT NULL        DEFAULT gen_random_uuid(),
+	id             SERIAL,
 	name           VARCHAR(50)  NOT NULL UNIQUE,
 	display_name   VARCHAR(50)  NOT NULL UNIQUE,
 	email          VARCHAR(254) NOT NULL UNIQUE,

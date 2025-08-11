@@ -14,6 +14,7 @@ pub struct Token(pub String);
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GqlLifehonClaims {
+    pub id: i64,
     pub name: String,
     pub email: String,
     exp: usize,
@@ -58,9 +59,10 @@ pub async fn gql_auth_middleware(
     Ok(next.run(req).await)
 }
 
-pub fn create_token(id: &String, email: &String) -> Result<String, async_graphql::Error> {
+pub fn create_token(name: &String, email: &String, id: &i64) -> Result<String, async_graphql::Error> {
     let my_claims = GqlLifehonClaims {
-        name: id.clone(),
+        id: *id,
+        name: name.clone(),
         email: email.clone(),
         exp: 100000000000000,
     };
