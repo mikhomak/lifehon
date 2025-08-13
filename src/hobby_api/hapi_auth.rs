@@ -39,7 +39,7 @@ pub struct SuccessLogin {
 #[derive(Deserialize, Serialize)]
 pub struct UserInfo {
     pub user_name: String,
-    pub user_id: i64,
+    pub id: i64,
     pub public_profile: bool,
 }
 
@@ -47,7 +47,7 @@ pub async fn check_token(Valid(Json(tokenInput)): Valid<Json<CheckTokenInput>>) 
     match get_token(&tokenInput.token) {
         Ok(Claims) => Ok(Json(UserInfo { 
             user_name: Claims.claims.name,
-            user_id: Claims.claims.id,
+            id: Claims.claims.id,
             public_profile: true
         })),
         Err(_) => Err((StatusCode::UNAUTHORIZED, "[LOGIN_005] Bad token")),
